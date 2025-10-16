@@ -43,7 +43,7 @@ else
 
 app.UseHttpsRedirection();
 
-// Viktig for å serve wwwroot (f.eks. wwwroot/css/site.css fra Tailwind)
+// Viktig for ï¿½ serve wwwroot (f.eks. wwwroot/css/site.css fra Tailwind)
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -51,9 +51,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// (valgfritt) Aspire/WebAssets helpers – behold dem dersom du bruker dem i prosjektet
+// (valgfritt) Aspire/WebAssets helpers ï¿½ behold dem dersom du bruker dem i prosjektet
 app.MapStaticAssets();
 
+// Bestemmer hvilken side som blir vist nï¿½r prosjektet startes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
@@ -61,7 +62,11 @@ app.MapControllerRoute(
 
 app.MapRazorPages().WithStaticAssets();
 
-// (valgfritt) liten sanity-check på DB-tilkoblingen brukt av EF
+// Omdiriger rot-URL til innloggingssiden
+app.MapGet("/", () => Results.Redirect("/Identity/Account/Login"));
+
+
+// liten sanity-check pï¿½ DB-tilkoblingen brukt av EF
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
