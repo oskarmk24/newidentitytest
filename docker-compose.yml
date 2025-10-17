@@ -1,19 +1,41 @@
+version: "3.9"
+
 services:
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root123
+      MARIADB_DATABASE: obstacledb
+      MARIADB_USER: appuser
+      MARIADB_PASSWORD: test123
+    ports:
+      - "3306:3306"           
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   newidentitytest:
     build:
       context: .
       dockerfile: newidentitytest/Dockerfile
     image: newidentitytest:dev
+    depends_on:
+      mariadb:
+        condition: service_healthy
     ports:
-      - "5000:8080"     # host:container
+      - "5173:8080"           # åpnes på http://localhost:5173
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: Server=mariadbcontainer;Port=3306;Database=obstacledb;User Id=root;Password=test123;AllowUserVariables=True;UseAffectedRows=False;
-    depends_on: []       # no DB in this compose file; DB is external
-    networks:
-      - appnet
+      # Viktig: bruk service-navnet "mariadb" som server/host
+      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=obstacledb;User Id=appuser;Password=test123;AllowUserVariables=True;UseAffectedRows=False;"
+    # (ingen networks-seksjon trengs; Compose lager et delt nett automatisk)
 
-networks:
-  appnet:
-    external: true
-    name: appnet
+volumes:
+  mariadb_data:
+

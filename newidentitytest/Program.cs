@@ -74,4 +74,11 @@ using (var scope = app.Services.CreateScope())
     Console.WriteLine($"Database: {db.Database.GetDbConnection().Database}");
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+    // Optional: SeedAdmin(scope.ServiceProvider);  // hvis du vil lage default admin
+}
+
 app.Run();
