@@ -34,7 +34,15 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       # Viktig: bruk service-navnet "mariadb" som server/host
       ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=obstacledb;User Id=appuser;Password=test123;AllowUserVariables=True;UseAffectedRows=False;"
-    # (ingen networks-seksjon trengs; Compose lager et delt nett automatisk)
+    
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"   # åpne Adminer på http://localhost:8081
+    depends_on:
+      - mariadb
 
 volumes:
   mariadb_data:
