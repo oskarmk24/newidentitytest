@@ -86,6 +86,10 @@
     <!-- Script for klient-side validering -->
     <partial name="_ValidationScriptsPartial" />
 
+    <!-- Laster inn filer fra JsDelivr CDN for marker lokasjon -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+    
     <script>
         // Starter kartet og setter standardvisning (Bergen)
         var map = L.map('map').setView([60.39, 5.32], 13);
@@ -129,5 +133,9 @@
         map.on('click', function (e) {
             placeOrMoveMarker(e.latlng);
         });
+
+        // Lokaliserer posisjon
+        L.control.locate().addTo(map);
+        
     </script>
 }
