@@ -12,10 +12,8 @@ services:
       - "3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
-    networks:
-      - appnet
     healthcheck:
-      test: ["CMD-SHELL", "/usr/bin/mariadb-admin ping -h 127.0.0.1 -u$MARIADB_USER -p$MARIADB_PASSWORD --silent || exit 1"]
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 --silent || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -31,8 +29,6 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=obstacledb;User Id=appuser;Password=test123;AllowUserVariables=True;UseAffectedRows=False;"
-    networks:
-      - appnet
     depends_on:
       mariadb:
         condition: service_healthy
@@ -46,13 +42,9 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-    networks:
-      - appnet
-
+    
 networks:
-  appnet:
-    external: true
-    name: appnet
+  appnet: {}
 
 volumes:
   mariadb_data:
