@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using newidentitytest.Data;
 using newidentitytest.Models;
-using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {

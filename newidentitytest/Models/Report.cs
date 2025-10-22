@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace newidentitytest.Models
 {
-    [Table("reports", Schema = "obstacledb")]
+    // MariaDB/MySQL don't support EF Core schemas, so remove 'Schema = "obstacledb"'
+    [Table("reports")]
     public class Report
     {
         [Key]
