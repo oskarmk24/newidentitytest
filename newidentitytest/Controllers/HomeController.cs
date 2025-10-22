@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 using newidentitytest.Models;
 using System.Diagnostics;
-using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {

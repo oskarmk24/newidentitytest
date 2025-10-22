@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using newidentitytest.Models;
+using Microsoft.EntityFrameworkCore;
 using newidentitytest.Data;
 using newidentitytest.Models;
 
@@ -11,11 +11,11 @@ namespace newidentitytest.Controllers
     public class ObstacleController : Controller
     {
         // Repository brukes til å lagre data i databasen
-        private readonly ReportsRepository _repo;
+        private readonly ApplicationDbContext _dbContext;
 
-        public ObstacleController(ReportsRepository repo)
+        public ObstacleController(ApplicationDbContext dbContext)
         {
-            _repo = repo;
+            _dbContext = dbContext;
         }
 
         /// <summary>
@@ -43,19 +43,21 @@ namespace newidentitytest.Controllers
 
             try
             {
-                // Lagrer data i databasen via repository
-                int newId = await _repo.CreateAsync(
-                    obstacleData.ObstacleName,
-                    obstacleData.ObstacleHeight,
-                    obstacleData.ObstacleDescription,
-                    obstacleData.ObstacleLocation
-                );
+                var report = new Report
+                {
+                    ObstacleName = obstacleData.ObstacleName,
+                    ObstacleHeight = Convert.ToInt32(Math.Round(obstacleData.ObstacleHeight)),
+                    ObstacleDescription = obstacleData.ObstacleDescription,
+                    ObstacleLocation = obstacleData.ObstacleLocation
+                };
 
-                // Gir beskjed om at lagring var vellykket
-                ViewBag.SavedReportId = newId;
-                TempData["Success"] = "Report saved with ID " + newId;
+                // Lagrer data i databasen via EF Core
+                _dbContext.Reports.Add(report);
+                await _dbContext.SaveChangesAsync();
+                ViewBag.SavedReportId = report.Id;
+                TempData["Success"] = "Report saved with ID " + report.Id;
             }
-            catch (System.Exception ex)
+            catch (DbUpdateException ex)
             {
                 // Viser en feilmelding hvis databasen ikke svarer
                 ModelState.AddModelError(string.Empty, "Database error: " + ex.Message);
