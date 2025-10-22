@@ -48,6 +48,7 @@ Visual studio metode
 2. Trykk docker compose knappen i visual studio.
 3. Burde funke??
 
+VS Code metode
 1. Åpne prosjektet i vs code.
 2. Høyreklikk på docker compose filen.
 3. Trykk compose up.
