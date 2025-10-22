@@ -37,10 +37,22 @@ ObstacleLocation: varchar (NULL)
 
 Docker compose filen skal opprette to containere, en for web app serveren og en container med mariaDB med obstacledb database og ferdig Reports tabell.
 
+(gammel måte)
 1. Åpne terminal inne i prosjekt-mappen
 2. Kjør "docker compose up --build" (Uten "")
 3. Sjekk at containerene har blitt opprettet i docker
 4. Åpne http://localhost:5173
+
+Visual studio metode
+1. Åpne prosjektet sin solution file.
+2. Trykk docker compose knappen i visual studio.
+3. Burde funke??
+
+1. Åpne prosjektet i vs code.
+2. Høyreklikk på docker compose filen.
+3. Trykk compose up.
+4. Gå inn på http://localhost:5173.
+5. Burde funke??
 
 
 
