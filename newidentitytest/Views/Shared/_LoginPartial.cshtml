@@ -4,14 +4,14 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
         <a asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage" 
-           class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">
+           class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700">
             Hello @User.Identity?.Name!
         </a>
         <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
             <button type="submit" 
-                    class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors bg-transparent border-none cursor-pointer">
+                    class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700 bg-transparent border-none cursor-pointer">
                 Logout
             </button>
         </form>
@@ -19,13 +19,13 @@
 }
 else
 {
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
         <a asp-area="Identity" asp-page="/Account/Register" 
-           class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">
+           class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700">
             Register
         </a>
         <a asp-area="Identity" asp-page="/Account/Login" 
-           class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">
+           class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700">
             Login
         </a>
     </div>

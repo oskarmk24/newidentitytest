@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 using newidentitytest.Models;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace newidentitytest.Controllers
 {
@@ -23,9 +24,12 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Tester om vi klarer å koble til databasen. 
-        /// Viser en melding på forsiden om det gikk bra eller ikke.
+        /// Tester om vi klarer ï¿½ koble til databasen. 
+        /// Viser en melding pï¿½ forsiden om det gikk bra eller ikke.
         /// </summary>
+        
+        //Krever at brukeren er autentisert for Ã¥ se siden.
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             string successMessage = "Connected to MariaDB successfully!";
@@ -33,16 +37,16 @@ namespace newidentitytest.Controllers
 
             try
             {
-                // Prøver å åpne en kobling til databasen
+                // Prï¿½ver ï¿½ ï¿½pne en kobling til databasen
                 await using var conn = new MySqlConnection(connectionString);
                 await conn.OpenAsync();
 
-                // Hvis det går bra vises en suksessmelding
+                // Hvis det gï¿½r bra vises en suksessmelding
                 return View("Index", successMessage);
             }
             catch (Exception ex)
             {
-                // Hvis noe går galt, vis en feilmelding
+                // Hvis noe gï¿½r galt, vis en feilmelding
                 return View("Index", errorMessage + " " + ex.Message);
             }
         }
@@ -56,7 +60,7 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Viser feilsiden med informasjon om RequestId (nyttig for feilsøking).
+        /// Viser feilsiden med informasjon om RequestId (nyttig for feilsï¿½king).
         /// </summary>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
