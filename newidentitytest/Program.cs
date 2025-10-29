@@ -61,8 +61,10 @@ app.MapControllerRoute(
 
 app.MapRazorPages().WithStaticAssets();
 
+app.MapGet("/", () => Results.Redirect("/Home/Index"));
+
 // Omdiriger rot-URL til innloggingssiden
-app.MapGet("/", () => Results.Redirect("/Identity/Account/Login"));
+//app.MapGet("/", () => Results.Redirect("/Identity/Account/Login"));
 
 using (var scope = app.Services.CreateScope())
 {
