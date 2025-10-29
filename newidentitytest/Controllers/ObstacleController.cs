@@ -2,12 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using newidentitytest.Data;
 using newidentitytest.Models;
+using Microsoft.AspNetCore.Authorization; // Autorisasjon for å kreve innlogging
+using System.Security.Claims; // Gir tilgang til brukerens Claims (f.eks. NameIdentifier)
 
 namespace newidentitytest.Controllers
 {
     /// <summary>
     /// Controller som håndterer skjema for å registrere hinder.
     /// </summary>
+    [Authorize] // Krev at brukeren er innlogget for å bruke disse endepunktene
     public class ObstacleController : Controller
     {
         // Repository brukes til å lagre data i databasen
@@ -33,12 +36,24 @@ namespace newidentitytest.Controllers
         /// Hvis noe er feil, vises skjemaet på nytt med feilmeldinger.
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DataForm(ObstacleData obstacleData)
         {
             // Sjekker at modellen er gyldig (validering fra ObstacleData)
             if (!ModelState.IsValid)
             {
                 return View(obstacleData);
+            }
+
+            // Hent innlogget brukers ID fra Claims.
+            // ASP.NET Core Identity utsteder en Claim av type ClaimTypes.NameIdentifier som er primærnøkkelen (AspNetUsers.Id).
+            // Vi lagrer denne som UserId på Report for å kunne filtrere rapporter pr. bruker senere.
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Dersom bruker på en eller annen måte ikke er autentisert (til tross for [Authorize])
+                // returnerer vi Forbid for å signalisere manglende tilgang.
+                return Forbid();
             }
 
             try
@@ -48,7 +63,9 @@ namespace newidentitytest.Controllers
                     ObstacleName = obstacleData.ObstacleName,
                     ObstacleHeight = Convert.ToInt32(Math.Round(obstacleData.ObstacleHeight)),
                     ObstacleDescription = obstacleData.ObstacleDescription,
-                    ObstacleLocation = obstacleData.ObstacleLocation
+                    ObstacleLocation = obstacleData.ObstacleLocation,
+                    // Knytter rapporten til innlogget bruker via Identity-brukerens Id
+                    UserId = userId
                 };
 
                 // Lagrer data i databasen via EF Core
