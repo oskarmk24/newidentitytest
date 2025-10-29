@@ -35,7 +35,23 @@
         @if (!string.IsNullOrWhiteSpace(Model.ObstacleLocation))
         {
             <div class="mt-4 space-y-2">
-                <p><strong>Location:</strong> @Model.ObstacleLocation</p>
+                <p><strong>Location:</strong> 
+                    @{ // Deserialiserer lokasjonen til et JSON-objekt og henter ut koordinatene. 
+                        // Dersom det ikke lykkes vil de vise error melding.
+                        try
+                        {
+                            var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(Model.ObstacleLocation);
+                            var coordinates = geo.GetProperty("coordinates");
+                            var lng = coordinates[0].GetDecimal();
+                            var lat = coordinates[1].GetDecimal();
+                            <text>Lat: @lat, Lng: @lng</text>
+                        }
+                        catch
+                        {
+                            <text>@Model.ObstacleLocation</text>
+                        }
+                    }
+                </p>
                 <div id="map2" style="height: 320px;" class="rounded-xl ring-1 ring-gray-200"></div>
             </div>
 
