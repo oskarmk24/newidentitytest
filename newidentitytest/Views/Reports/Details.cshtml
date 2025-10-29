@@ -1,0 +1,56 @@
+@model newidentitytest.Models.ReportDetailsViewModel
+@{
+    ViewData["Title"] = "Report Details";
+}
+
+<section class="mx-auto max-w-3xl">
+  <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-4">
+    <header>
+      @* Page title and a short summary line with sender and date *@
+      <h1 class="text-2xl font-semibold">Report @Model.Report.Id</h1>
+      <p class="text-gray-600">Submitted by @Model.Sender on @Model.Report.CreatedAt.ToString("MMM dd, yyyy")</p>
+    </header>
+
+    @* Definition list presents key/value pairs neatly *@
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm text-gray-600">Obstacle Name</dt>
+        <dd class="mt-1">@Model.Report.ObstacleName</dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-600">Height</dt>
+        <dd class="mt-1">@Model.Report.ObstacleHeight</dd>
+      </div>
+      <div class="sm:col-span-2">
+        <dt class="text-sm text-gray-600">Description</dt>
+        <dd class="mt-1">@Model.Report.ObstacleDescription</dd>
+      </div>
+    </dl>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Report.ObstacleLocation))
+    {
+      <div class="mt-4 space-y-2">
+        <p class="text-sm text-gray-600">Location</p>
+        <div id="map" style="height: 360px;" class="rounded-xl ring-1 ring-gray-200"></div>
+      </div>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+      <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+      <script>
+        // Try to parse the stored GeoJSON-like string and render a Leaflet map
+        try {
+          var geo = JSON.parse(@Html.Raw(Json.Serialize(Model.Report.ObstacleLocation)));
+          var lng = geo.coordinates[0];
+          var lat = geo.coordinates[1];
+          var map = L.map('map').setView([lat, lng], 13);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+          L.marker([lat, lng]).addTo(map);
+        } catch(e) { console.warn('Could not parse location JSON', e); }
+      </script>
+    }
+
+    <div class="pt-2">
+      @* Simple navigation back to the list *@
+      <a asp-controller="Reports" asp-action="Index" class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Back to Reports</a>
+    </div>
+  </div>
+</section>
