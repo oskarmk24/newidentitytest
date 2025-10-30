@@ -68,6 +68,9 @@ namespace newidentitytest.Controllers
                     UserId = userId
                 };
 
+                // Attach sender (logged-in user) to the report
+                report.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
                 // Lagrer data i databasen via EF Core
                 _dbContext.Reports.Add(report);
                 await _dbContext.SaveChangesAsync();

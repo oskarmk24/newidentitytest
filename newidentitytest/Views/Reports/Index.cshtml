@@ -1,0 +1,57 @@
+@model IEnumerable<newidentitytest.Models.ReportListItem>
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<section class="container mx-auto">
+    <header class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-semibold">Reports (@Model.Count())</h1>
+        <div class="flex items-center gap-2">
+            @* Simple client-side text filter for the table *@
+            <input id="searchBox" type="text" placeholder="Search" class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
+            <a asp-controller="Obstacle" asp-action="DataForm"
+               class="inline-flex items-center rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Create</a>
+        </div>
+    </header>
+
+    <div class="overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
+        @* Basic, accessible table layout *@
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-left text-gray-600">
+                <tr>
+                    <th class="px-4 py-3">Report ID</th>
+                    <th class="px-4 py-3">Creation Date</th>
+                    <th class="px-4 py-3">Sender</th>
+                    <th class="px-4 py-3">Obstacle</th>
+                </tr>
+            </thead>
+            <tbody id="reportRows" class="divide-y divide-gray-100">
+                @foreach (var r in Model)
+                {
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            @* Clickable ID navigates to a details page *@
+                            <a class="text-indigo-700 hover:underline" asp-controller="Reports" asp-action="Details" asp-route-id="@r.Id">@r.Id</a>
+                        </td>
+                        <td class="px-4 py-3">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td class="px-4 py-3">@r.Sender</td>
+                        <td class="px-4 py-3">@r.ObstacleName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+      // Tiny in-place search: hides rows that don't match the typed query
+      const searchBox = document.getElementById('searchBox');
+      const rows = Array.from(document.querySelectorAll('#reportRows tr'));
+      searchBox?.addEventListener('input', () => {
+        const q = searchBox.value.toLowerCase();
+        rows.forEach(tr => {
+          const text = tr.innerText.toLowerCase();
+          tr.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+    </script>
+</section>
