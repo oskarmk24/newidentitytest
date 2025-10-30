@@ -23,6 +23,7 @@
                     <th class="px-4 py-3">Creation Date</th>
                     <th class="px-4 py-3">Sender</th>
                     <th class="px-4 py-3">Obstacle</th>
+                    <th class="px-4 py-3">Location</th>
                 </tr>
             </thead>
             <tbody id="reportRows" class="divide-y divide-gray-100">
@@ -36,6 +37,29 @@
                         <td class="px-4 py-3">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
                         <td class="px-4 py-3">@r.Sender</td>
                         <td class="px-4 py-3">@r.ObstacleName</td>
+                        <td class="px-4 py-3">
+                            @{
+                                if (!string.IsNullOrWhiteSpace(r.ObstacleLocation))
+                                {
+                                    try
+                                    {
+                                        var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(r.ObstacleLocation);
+                                        var coordinates = geo.GetProperty("coordinates");
+                                        var lng = coordinates[0].GetDecimal();
+                                        var lat = coordinates[1].GetDecimal();
+                                        <text>Lat: @lat, Lng: @lng</text>;
+                                    }
+                                    catch
+                                    {
+                                        <text>-</text>;
+                                    }
+                                }
+                                else
+                                {
+                                    <text>-</text>;
+                                }
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>

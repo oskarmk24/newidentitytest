@@ -21,7 +21,7 @@ namespace newidentitytest.Models
         /// Må fylles ut og være mellom 0 og 200.
         /// </summary>
         [Required(ErrorMessage = "Field is required.")]
-        [Range(0, 200)]
+        [Range(0, 200, ErrorMessage = "Height must be between {1} and {2} meters.")]
         public decimal ObstacleHeight { get; set; }
 
         /// <summary>

@@ -31,10 +31,26 @@
 
                 <!-- Høyde på hinder -->
                 <div>
-                    <label asp-for="ObstacleHeight" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Height (meters)</label>
-                    <input asp-for="ObstacleHeight" type="number"
-                           class="block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2"
+                    <label class="block text-sm font-medium text-gray-800 mb-1">
+                        Obstacle Height (<span id="unitText">Meters</span>)
+                    </label>
+                    <!-- Hidden, model-bound input stores meters for server-side validation -->
+                    <input asp-for="ObstacleHeight" type="hidden" id="ObstacleHeight" />
+
+                    <!-- Visible input the user interacts with; value shown in selected unit -->
+                    <input id="ObstacleHeightDisplay" type="number" step="any"
+                           class="block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2 mb-2"
                            placeholder="e.g., 2.5" />
+
+                    <!-- Simple on/off switch for ft/m -->
+                    <div class="mt-1 flex items-center justify-start gap-2">
+                        <label class="switch" title="Toggle feet/meters">
+                            <input id="unitToggle" type="checkbox" aria-label="Toggle feet/meters">
+                            <span class="slider round"></span>
+                        </label>
+                        <div class="text-xs text-gray-600 select-none">ft / m</div>
+                    </div>
+
                     <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
                 </div>
             </div>
@@ -80,6 +96,14 @@
     #map {
         height: 400px;
     }
+
+    /* Toggle switch styles */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e5e7eb; transition: .2s; border-radius: 9999px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+    input:checked + .slider { background-color: #2563eb; }
+    input:checked + .slider:before { transform: translateX(20px); }
 </style>
 
 @section Scripts {
@@ -136,6 +160,120 @@
 
         // Lokaliserer posisjon
         L.control.locate().addTo(map);
-        
+
+        // ----- Height unit toggle (Meters <-> Feet) -----
+        (function () {
+            var hiddenMeters = document.getElementById('ObstacleHeight');
+            var displayInput = document.getElementById('ObstacleHeightDisplay');
+            var unitToggle = document.getElementById('unitToggle');
+            var unitText = document.getElementById('unitText');
+
+            var M_TO_FT = 3.28084;
+            var currentUnit = 'm'; // 'm' for meters, 'ft' for feet
+
+            // Safety guard: if any element is missing, skip setup to avoid runtime errors
+            if (!hiddenMeters || !displayInput || !unitToggle || !unitText) {
+                return;
+            }
+
+            // Read range from MVC unobtrusive attributes if present; fallback to 0..200
+            var minMetersAttr = hiddenMeters ? hiddenMeters.getAttribute('data-val-range-min') : null;
+            var maxMetersAttr = hiddenMeters ? hiddenMeters.getAttribute('data-val-range-max') : null;
+            var minMeters = (minMetersAttr !== null && minMetersAttr !== '') ? parseFloat(minMetersAttr) : 0;
+            var maxMeters = (maxMetersAttr !== null && maxMetersAttr !== '') ? parseFloat(maxMetersAttr) : 200;
+
+            function parseNumber(val) {
+                if (val === null || val === undefined) return NaN;
+                // Replace comma with dot for decimal if needed
+                var s = String(val).replace(',', '.').trim();
+                var n = parseFloat(s);
+                return isNaN(n) ? NaN : n;
+            }
+
+            function roundTo(n, decimals) {
+                var p = Math.pow(10, decimals);
+                return Math.round(n * p) / p;
+            }
+
+            function updateHiddenFromDisplay() {
+                var v = parseNumber(displayInput.value);
+                if (isNaN(v)) {
+                    hiddenMeters.value = '';
+                    return;
+                }
+                if (currentUnit === 'm') {
+                    hiddenMeters.value = v;
+                } else {
+                    hiddenMeters.value = roundTo(v / M_TO_FT, 6);
+                }
+            }
+
+            function syncDisplayFromHidden() {
+                var m = parseNumber(hiddenMeters.value);
+                if (isNaN(m)) {
+                    displayInput.value = '';
+                    return;
+                }
+                if (currentUnit === 'm') {
+                    displayInput.value = m;
+                } else {
+                    displayInput.value = roundTo(m * M_TO_FT, 2);
+                }
+            }
+
+            // Dynamic validation message reflecting the selected unit and server-side bounds
+            var valSpan = document.querySelector('span[data-valmsg-for="ObstacleHeight"]');
+            function updateValidationMessage() {
+                if (!valSpan) return;
+                var hasError = valSpan.textContent && valSpan.textContent.trim().length > 0;
+                if (!hasError) return;
+                if (currentUnit === 'ft') {
+                    var minFt = Math.round(minMeters * M_TO_FT);
+                    var maxFt = Math.round(maxMeters * M_TO_FT);
+                    valSpan.textContent = 'Height must be between ' + minFt + ' and ' + maxFt + ' feet.';
+                } else {
+                    valSpan.textContent = 'Height must be between ' + minMeters + ' and ' + maxMeters + ' meters.';
+                }
+            }
+
+            function setUnit(unit) {
+                if (unit === currentUnit) return;
+                // Convert the displayed value to the new unit while keeping the same real height
+                currentUnit = unit;
+                unitText.textContent = unit === 'm' ? 'Meters' : 'Feet';
+                displayInput.placeholder = unit === 'm' ? 'e.g., 2.5' : 'e.g., 8.2';
+                syncDisplayFromHidden();
+                updateValidationMessage();
+            }
+
+            // Initialize from server value (meters)
+            syncDisplayFromHidden();
+
+            // Events
+            displayInput.addEventListener('input', function(){
+                updateHiddenFromDisplay();
+                updateValidationMessage();
+            });
+            unitToggle.addEventListener('change', function () {
+                setUnit(unitToggle.checked ? 'ft' : 'm');
+            });
+
+            // Ensure meters posted on submit even if user toggled to feet
+            var form = displayInput.form;
+            if (form) {
+                form.addEventListener('submit', function () {
+                    // Update hidden from display right before submit
+                    updateHiddenFromDisplay();
+                });
+            }
+
+            // Observe changes to the validation span (when jQuery Validate updates it)
+            if (valSpan && 'MutationObserver' in window) {
+                var observer = new MutationObserver(function () { updateValidationMessage(); });
+                observer.observe(valSpan, { childList: true, characterData: true, subtree: true });
+            }
+        })();
+        // ----- End unit toggle -----
+
     </script>
 }
