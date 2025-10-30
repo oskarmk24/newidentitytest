@@ -35,7 +35,8 @@ namespace newidentitytest.Controllers
                                    Id = r.Id,
                                    CreatedAt = r.CreatedAt,
                                    Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
-                                   ObstacleName = r.ObstacleName
+                                   ObstacleName = r.ObstacleName,
+                                   ObstacleLocation = r.ObstacleLocation
                                }).ToListAsync();
             return View(items);
         }
