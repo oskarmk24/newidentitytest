@@ -12,7 +12,7 @@ namespace newidentitytest.Models
         /// Navnet på hinderet.
         /// Må fylles ut og kan være maks 100 tegn.
         /// </summary>
-        [Required(ErrorMessage = "Field is required.")]
+        [Required(ErrorMessage = "Obstacle name is required.")]
         [MaxLength(100)]
         public string ObstacleName { get; set; }
 
@@ -20,7 +20,7 @@ namespace newidentitytest.Models
         /// Høyden på hinderet i meter.
         /// Må fylles ut og være mellom 0 og 200.
         /// </summary>
-        [Required(ErrorMessage = "Field is required.")]
+        [Required(ErrorMessage = "Obstacle height is required.")]
         [Range(0, 200, ErrorMessage = "Height must be between {1} and {2} meters.")]
         public decimal ObstacleHeight { get; set; }
 
@@ -28,7 +28,7 @@ namespace newidentitytest.Models
         /// En kort beskrivelse av hinderet.
         /// Må fylles ut og kan være maks 1000 tegn.
         /// </summary>
-        [Required(ErrorMessage = "Field is required.")]
+        [Required(ErrorMessage = "Obstacle Description is required.")]
         [MaxLength(1000)]
         public string ObstacleDescription { get; set; }
 
@@ -37,7 +37,7 @@ namespace newidentitytest.Models
         /// Lagres som tekst (for eksempel lat/lng fra kartet).
         /// Må fylles ut og kan være maks 1000 tegn.
         /// </summary>
-        [Required(ErrorMessage = "Field is required.")]
+        [Required(ErrorMessage = "Map position is required.")]
         [MaxLength(1000)]
         public string ObstacleLocation { get; set; }
     }

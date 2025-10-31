@@ -17,7 +17,11 @@
             <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
 
             <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket på kartet -->
-            <input type="hidden" asp-for="ObstacleLocation" id="ObstacleLocation" />
+            <!-- Change input to visually hidden text so jQuery Validate doesn't ignore it -->
+            <input type="text" asp-for="ObstacleLocation" id="ObstacleLocation"
+                   style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
+                   aria-hidden="true" tabindex="-1" />
+            <span asp-validation-for="ObstacleLocation" class="text-sm text-red-600"></span>
 
             <div class="grid gap-5 sm:grid-cols-2">
                 <!-- Navn på hinder -->
@@ -115,6 +119,15 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.js" charset="utf-8"></script>
     
     <script>
+        // Include hidden inputs in client-side validation so ObstacleLocation (hidden) shows errors
+        if (window.jQuery && jQuery.validator) {
+            jQuery(function(){
+                var $form = jQuery('form[method="post"][action$="DataForm"], form').first();
+                var v = $form.data('validator');
+                if (v && v.settings) { v.settings.ignore = ""; }
+                else { jQuery.validator.setDefaults({ ignore: [] }); }
+            });
+        }
         // Starter kartet og setter standardvisning (Bergen)
         var map = L.map('map').setView([60.39, 5.32], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -137,6 +150,7 @@
             if (hint) {
                 hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
+
         }
 
         // Plasserer eller flytter markør på kartet
@@ -160,6 +174,7 @@
 
         // Lokaliserer posisjon
         L.control.locate().addTo(map);
+
 
         // ----- Height unit toggle (Meters <-> Feet) -----
         (function () {
