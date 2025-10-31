@@ -60,6 +60,27 @@
                             <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
                                asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <li>
+                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
+                                       asp-area="" asp-controller="Organization" asp-action="Index">Organizations</a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
+                                       asp-area="" asp-controller="Role" asp-action="Index">Roles</a>
+                                </li>
+                                <li>
+                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
+                                       asp-area="" asp-controller="UserManagement" asp-action="Index">Users</a>
+                                </li>
+                            }
+                        }
                     </ul>
                 </div>
 

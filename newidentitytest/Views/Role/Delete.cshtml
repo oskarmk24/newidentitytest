@@ -1,0 +1,57 @@
+@model Microsoft.AspNetCore.Identity.IdentityRole
+
+@{
+    ViewData["Title"] = "Delete Role";
+    var usersInRole = ViewBag.UsersInRole as IEnumerable<newidentitytest.Models.ApplicationUser> ?? new List<newidentitytest.Models.ApplicationUser>();
+}
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-6 text-red-600">Delete Role</h1>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        @if (usersInRole.Any())
+        {
+            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+                <p class="text-red-800 font-medium">Cannot delete this role!</p>
+                <p class="text-red-700 text-sm mt-2">
+                    This role has @(usersInRole.Count()) user(s) assigned. Remove all users from this role before deleting it.
+                </p>
+            </div>
+
+            <h3 class="text-lg font-semibold mb-4">Users in this role:</h3>
+            <ul class="divide-y divide-gray-200 mb-6">
+                @foreach (var user in usersInRole)
+                {
+                    <li class="py-2">
+                        <span class="text-sm text-gray-900">@user.Email</span>
+                    </li>
+                }
+            </ul>
+
+            <div class="flex justify-end">
+                <a asp-action="Index" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+                    Back to List
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+                <p class="text-yellow-800 font-medium">Warning: This action cannot be undone.</p>
+            </div>
+
+            <h3 class="text-lg font-semibold mb-4">Are you sure you want to delete the role "@Model.Name"?</h3>
+
+            <form asp-action="Delete" method="post" class="flex justify-end gap-3">
+                <input type="hidden" asp-for="Id" />
+                <a asp-action="Index" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+                    Delete Role
+                </button>
+            </form>
+        }
+    </div>
+</div>
+

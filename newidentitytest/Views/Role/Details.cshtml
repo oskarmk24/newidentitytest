@@ -1,0 +1,48 @@
+@model Microsoft.AspNetCore.Identity.IdentityRole
+
+@{
+    ViewData["Title"] = "Role Details";
+    var usersInRole = ViewBag.UsersInRole as IEnumerable<newidentitytest.Models.ApplicationUser> ?? new List<newidentitytest.Models.ApplicationUser>();
+    var roleName = ViewBag.RoleName as string ?? Model.Name;
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a asp-action="Index" class="text-indigo-600 hover:text-indigo-700">← Back to Roles</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b">
+            <h1 class="text-2xl font-bold">@roleName</h1>
+        </div>
+        
+        <div class="px-6 py-4 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Users in this role (@usersInRole.Count())</label>
+                @if (usersInRole.Any())
+                {
+                    <ul class="divide-y divide-gray-200">
+                        @foreach (var user in usersInRole)
+                        {
+                            <li class="py-2 flex justify-between items-center">
+                                <span class="text-sm text-gray-900">@user.Email</span>
+                                <span class="text-xs text-gray-500">@user.UserName</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-sm text-gray-500">No users assigned to this role</p>
+                }
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t flex justify-end">
+            <a asp-action="Index" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+

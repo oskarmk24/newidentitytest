@@ -42,9 +42,9 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-    
-networks:
-  appnet: {}
+
+# REMOVED: Unused network definition - services communicate on the default Docker network.
+# If you need a custom network, uncomment and add 'networks: [appnet]' to each service.
 
 volumes:
   mariadb_data:
