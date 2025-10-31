@@ -115,12 +115,14 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.js" charset="utf-8"></script>
     
     <script>
-        // Starter kartet og setter standardvisning (Bergen)
-        var map = L.map('map').setView([60.39, 5.32], 13);
+        // Starter kartet, og ber om brukerens posisjon for å sentrere kartet
+        var map = L.map('map').setView([51.505, -0.09], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
+            maxZoom: 16
         }).addTo(map);
+
+        map.locate({ setView: true, maxZoom: 16 });
 
         // Holder referanse til markøren + skjult input
         var marker = null;
