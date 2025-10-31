@@ -132,8 +132,10 @@
         var map = L.map('map').setView([60.39, 5.32], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
+            maxZoom: 16
         }).addTo(map);
+
+        map.locate({ setView: true, maxZoom: 16 });
 
         // Holder referanse til markøren + skjult input
         var marker = null;
