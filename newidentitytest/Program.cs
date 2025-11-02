@@ -91,7 +91,7 @@ static async Task SeedRolesAndOrganizations(IServiceProvider serviceProvider)
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
     
     // Create roles if they don't exist
-    string[] roles = { "Admin", "Manager", "User" };
+    string[] roles = { "Admin", "Registerfører", "Pilot" };
     foreach (var roleName in roles)
     {
         if (!await roleManager.RoleExistsAsync(roleName))
@@ -122,11 +122,11 @@ static async Task SeedRolesAndOrganizations(IServiceProvider serviceProvider)
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
-                Console.WriteLine($"✓ Default admin user created: {adminEmail}");
+                Console.WriteLine($"Default admin user created: {adminEmail}");
             }
             else
             {
-                Console.WriteLine($"✗ Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                Console.WriteLine($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
         }
         else
@@ -135,7 +135,7 @@ static async Task SeedRolesAndOrganizations(IServiceProvider serviceProvider)
             if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
-                Console.WriteLine($"✓ Admin role assigned to existing user: {adminEmail}");
+                Console.WriteLine($"Admin role assigned to existing user: {adminEmail}");
             }
         }
     }
@@ -144,8 +144,8 @@ static async Task SeedRolesAndOrganizations(IServiceProvider serviceProvider)
     if (!dbContext.Organizations.Any())
     {
         dbContext.Organizations.AddRange(
-            new Organization { Name = "Acme Corp", Description = "Main organization" },
-            new Organization { Name = "Tech Solutions", Description = "Technology department" }
+            new Organization { Name = "Kartverket", Description = "Ansatte i Kartverket" },
+            new Organization { Name = "NLA", Description = "Ansatte i Norsk luftambulanse" }
         );
         await dbContext.SaveChangesAsync();
     }

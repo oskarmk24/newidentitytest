@@ -19,4 +19,3 @@ namespace newidentitytest.Models
         public virtual Organization? Organization { get; set; }
     }
 }
-
