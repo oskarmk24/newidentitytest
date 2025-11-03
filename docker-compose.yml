@@ -28,7 +28,7 @@ services:
       - "5173:8080"  # open on http://localhost:5173
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=obstacledb;User Id=appuser;Password=test123;AllowUserVariables=True;UseAffectedRows=False;"
+      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=obstacledb;User Id=root;Password=root123;AllowUserVariables=True;UseAffectedRows=False;"
     depends_on:
       mariadb:
         condition: service_healthy

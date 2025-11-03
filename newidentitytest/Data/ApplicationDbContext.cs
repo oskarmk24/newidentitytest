@@ -77,6 +77,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(r => r.ObstacleLocation)
                   .HasColumnType("longtext");
 
+            entity.Property(r => r.ObstacleType)
+                  .HasMaxLength(100);
+
             entity.Property(r => r.UserId)
                   .HasMaxLength(255);
 

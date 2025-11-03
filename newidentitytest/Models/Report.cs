@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace newidentitytest.Models
 {
-    // MariaDB/MySQL don't support EF Core schemas, so remove 'Schema = "obstacledb"'
     [Table("reports")]
     public class Report
     {
@@ -21,6 +20,9 @@ namespace newidentitytest.Models
 
         [Column(TypeName = "longtext")]
         public string? ObstacleLocation { get; set; }
+
+        [MaxLength(100)]
+        public string? ObstacleType { get; set; }
 
         [MaxLength(255)]
         public string? UserId { get; set; }
