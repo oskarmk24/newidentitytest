@@ -1,0 +1,62 @@
+@model newidentitytest.Models.Organization
+
+@{
+    ViewData["Title"] = "Organization Details";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a asp-action="Index" class="text-indigo-600 hover:text-indigo-700">← Back to Organizations</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b">
+            <h1 class="text-2xl font-bold">@Model.Name</h1>
+        </div>
+        
+        <div class="px-6 py-4 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+                <p class="mt-1 text-sm text-gray-900">@(Model.Description ?? "No description")</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Created At</label>
+                <p class="mt-1 text-sm text-gray-900">@Model.CreatedAt.ToString("MMMM dd, yyyy 'at' HH:mm")</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Users (@Model.Users.Count)</label>
+                @if (Model.Users.Any())
+                {
+                    <ul class="divide-y divide-gray-200">
+                        @foreach (var user in Model.Users)
+                        {
+                            <li class="py-2 flex justify-between items-center">
+                                <span class="text-sm text-gray-900">@user.Email</span>
+                                <span class="text-xs text-gray-500">@user.UserName</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-sm text-gray-500">No users in this organization</p>
+                }
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3">
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+                    Edit
+                </a>
+            }
+            <a asp-action="Index" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+

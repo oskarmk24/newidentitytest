@@ -1,0 +1,139 @@
+@model newidentitytest.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Manage User";
+    var userRoles = ViewBag.UserRoles as IEnumerable<string> ?? new List<string>();
+    var allOrganizations = ViewBag.AllOrganizations as IEnumerable<newidentitytest.Models.Organization> ?? new List<newidentitytest.Models.Organization>();
+}
+
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-6">
+        <a asp-action="Index" class="text-indigo-600 hover:text-indigo-700">← Back to Users</a>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-6">Manage User: @Model.Email</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Organization Section -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Organization</h2>
+            
+            @if (Model.Organization != null)
+            {
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Current Organization:</p>
+                    <p class="text-lg font-medium text-gray-900">@Model.Organization.Name</p>
+                    @if (!string.IsNullOrEmpty(Model.Organization.Description))
+                    {
+                        <p class="text-sm text-gray-500 mt-1">@Model.Organization.Description</p>
+                    }
+                </div>
+
+                <form asp-action="RemoveFromOrganization" method="post">
+                    <input type="hidden" name="userId" value="@Model.Id" />
+                    <button type="submit" 
+                            onclick="return confirm('Remove user from @Model.Organization.Name?')"
+                            class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm">
+                        Remove from Organization
+                    </button>
+                </form>
+            }
+            else
+            {
+                <p class="text-gray-500 mb-4">No organization assigned</p>
+                
+                @if (allOrganizations.Any())
+                {
+                    <form asp-action="AssignToOrganization" method="post">
+                        <input type="hidden" name="userId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label for="organizationId" class="block text-sm font-medium text-gray-700 mb-1">Select Organization</label>
+                            <select name="organizationId" id="organizationId" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">-- Select Organization --</option>
+                                @foreach (var org in allOrganizations)
+                                {
+                                    <option value="@org.Id">@org.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm">
+                            Assign to Organization
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-sm text-gray-500">No organizations available. <a asp-controller="Organization" asp-action="Create" class="text-indigo-600 hover:text-indigo-700">Create one</a></p>
+                }
+            }
+        </div>
+
+        <!-- Roles Section -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Roles</h2>
+            
+            @if (userRoles.Any())
+            {
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Current Roles:</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var role in userRoles)
+                        {
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                                @role
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-gray-500 mb-4">No roles assigned</p>
+            }
+
+            <a asp-controller="Role" asp-action="ManageUserRoles" asp-route-userId="@Model.Id" 
+               class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm">
+                Manage Roles
+            </a>
+        </div>
+    </div>
+
+    <!-- User Details Section -->
+    <div class="bg-white rounded-lg shadow p-6 mt-6">
+        <h2 class="text-xl font-semibold mb-4">User Details</h2>
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="text-sm text-gray-900">@Model.Email</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Username</dt>
+                <dd class="text-sm text-gray-900">@Model.UserName</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Email Confirmed</dt>
+                <dd class="text-sm text-gray-900">@(Model.EmailConfirmed ? "Yes" : "No")</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+                <dd class="text-sm text-gray-900">@(Model.PhoneNumber ?? "Not set")</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
