@@ -22,6 +22,9 @@ namespace newidentitytest.Models
         [Column(TypeName = "longtext")]
         public string? ObstacleLocation { get; set; }
 
+        [MaxLength(100)]
+        public string? ObstacleType { get; set; }
+        
         [MaxLength(255)]
         public string? UserId { get; set; }
 
