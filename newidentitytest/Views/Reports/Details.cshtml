@@ -19,7 +19,19 @@
       </div>
       <div>
         <dt class="text-sm text-gray-600">Height</dt>
-        <dd class="mt-1">@Model.Report.ObstacleHeight</dd>
+        <dd class="mt-1">
+          @{
+              string heightDisplay = "-";
+              if (Model.Report.ObstacleHeight.HasValue)
+              {
+                  // Store height in meters and convert to feet (1 m = 3.28084 ft)
+                  decimal meters = (decimal)Model.Report.ObstacleHeight.Value;
+                  decimal feet = meters * 3.28084m;
+                  heightDisplay = $"{meters:0.#} m ({feet:0.#} ft)";
+              }
+          }
+          @heightDisplay
+        </dd>
       </div>
       <div class="sm:col-span-2">
         <dt class="text-sm text-gray-600">Description</dt>

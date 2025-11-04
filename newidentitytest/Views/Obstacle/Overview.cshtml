@@ -22,7 +22,14 @@
             <!-- Høyde på hinder -->
             <div class="sm:col-span-1">
                 <dt class="text-sm font-medium text-gray-600">Height</dt>
-                <dd class="mt-1 text-base text-gray-900">@Model.ObstacleHeight</dd>
+                <dd class="mt-1 text-base text-gray-900">
+                    @{
+                        decimal meters = Model.ObstacleHeight;
+                        decimal feet = meters * 3.28084m; // 1 m = 3.28084 ft
+                        var heightDisplay = $"{meters:0.#} m ({feet:0.#} ft)";
+                    }
+                    @heightDisplay
+                </dd>
             </div>
 
             <!-- Beskrivelse av hinder -->
