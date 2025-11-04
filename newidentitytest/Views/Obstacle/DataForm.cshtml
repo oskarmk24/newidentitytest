@@ -4,7 +4,22 @@
     ViewData["Title"] = "Register Obstacle";
 }
 
+<!-- Kartseksjon for å velge posisjon (map first) -->
 <section class="mx-auto max-w-2xl">
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+        <header class="mb-6">
+            <h1 class="text-2xl font-semibold">Map</h1>
+        </header>
+
+        <!-- Selve kartet -->
+        <div id="map"></div>
+
+        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
+        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
+    </div>
+</section>
+
+<section class="mx-auto max-w-2xl pt-6" id="formSection" style="display:none;">
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
         <header class="mb-6">
             <h1 class="text-2xl font-semibold">Obstacle Registration Form</h1>
@@ -80,20 +95,7 @@
 </section>
 
 
-<!-- Kartseksjon for å velge posisjon -->
-<section class="mx-auto max-w-2xl pt-6">
-    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Map</h1>
-        </header>
-
-        <!-- Selve kartet -->
-        <div id="map"></div>
-
-        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
-        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
-    </div>
-</section>
+<!-- (removed duplicate bottom map section) -->
 
 <!-- Størrelse på kartet -->
 <style>
@@ -141,6 +143,7 @@
         var marker = null;
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
+        var formSection = document.getElementById('formSection');
 
         // Lagrer posisjon i JSON-format i skjult input
         function setLocation(lat, lng) {
@@ -153,6 +156,11 @@
                 hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
 
+            // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
+            if (formSection && formSection.style.display === 'none') {
+                formSection.style.display = 'block';
+                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Plasserer eller flytter markør på kartet

@@ -32,6 +32,12 @@ namespace newidentitytest.Controllers
         [Authorize]
         public async Task<IActionResult> Index()
         {
+            // rett brukere mot kartet først for å registrere hinder.
+            if (!User.IsInRole("Admin"))
+            {
+                return RedirectToAction("DataForm", "Obstacle");
+            }
+
             string successMessage = "Connected to MariaDB successfully!";
             string errorMessage = "Failed to connect to MariaDB.";
 
