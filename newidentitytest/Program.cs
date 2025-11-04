@@ -78,9 +78,6 @@ using (var scope = app.Services.CreateScope())
     
     // Seed initial roles and organizations
     await DatabaseSeeder.SeedRolesAndOrganizations(scope.ServiceProvider);
-    
-    // Seed test data for reports and pilots
-    await DatabaseSeeder.SeedTestData(scope.ServiceProvider);
 }
 
 app.Run();
