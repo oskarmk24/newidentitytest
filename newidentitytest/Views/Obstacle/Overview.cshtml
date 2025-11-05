@@ -36,20 +36,38 @@
         {
             <div class="mt-4 space-y-2">
                 <p><strong>Location:</strong> 
-                    @{ // Deserialiserer lokasjonen til et JSON-objekt og henter ut koordinatene. 
-                        // Dersom det ikke lykkes vil de vise error melding.
+                    @{ // Deserialiserer lokasjonen og viser ryddig tekst uten GeoJSON-type
                         try
                         {
                             var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(Model.ObstacleLocation);
-                            var coordinates = geo.GetProperty("coordinates");
-                            var lng = coordinates[0].GetDecimal();
-                            var lat = coordinates[1].GetDecimal();
-                            <text>Lat: @lat, Lng: @lng</text>
+                            string type = geo.TryGetProperty("type", out var tEl) ? tEl.GetString() : null;
+                            if (string.Equals(type, "LineString", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                var coords = geo.GetProperty("coordinates");
+                                var parts = new System.Collections.Generic.List<string>();
+                                foreach (var p in coords.EnumerateArray())
+                                {
+                                    var lng = p[0].GetDecimal();
+                                    var lat = p[1].GetDecimal();
+                                    parts.Add($"({lat:F6}, {lng:F6})");
+                                }
+                                <text>@string.Join(" -> ", parts)</text>
+                            }
+                            else if (string.Equals(type, "Point", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                var coordinates = geo.GetProperty("coordinates");
+                                var lng = coordinates[0].GetDecimal();
+                                var lat = coordinates[1].GetDecimal();
+                                var txt = $"({lat:F6}, {lng:F6})";
+                                <text>@txt</text>
+                            }
+                            else
+                            {
+                                // Ukjent format: vis kort tekst uten støy
+                                <text>Location data received</text>
+                            }
                         }
-                        catch
-                        {
-                            <text>@Model.ObstacleLocation</text>
-                        }
+                        catch { <text>Location data received</text>; }
                     }
                 </p>
                 <div id="map2" style="height: 320px;" class="rounded-xl ring-1 ring-gray-200"></div>
