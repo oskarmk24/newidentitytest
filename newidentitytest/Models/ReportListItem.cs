@@ -8,6 +8,8 @@ namespace newidentitytest.Models
         public DateTime CreatedAt { get; set; }
         // Human-friendly sender label (email or username)
         public string Sender { get; set; } = string.Empty;
+        // Selected obstacle type (optional legacy fallback)
+        public string? ObstacleType { get; set; }
         // Short title of the obstacle
         public string ObstacleName { get; set; } = string.Empty;
         // Stored GeoJSON-like location string (e.g., { type: "Point", coordinates: [lng, lat] })

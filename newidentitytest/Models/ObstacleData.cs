@@ -12,9 +12,16 @@ namespace newidentitytest.Models
         /// Navnet på hinderet.
         /// Må fylles ut og kan være maks 100 tegn.
         /// </summary>
-        [Required(ErrorMessage = "Obstacle name is required.")]
         [MaxLength(100)]
         public string ObstacleName { get; set; }
+
+        /// <summary>
+        /// Forhåndsdefinert type for hinderet (valgt via knapper).
+        /// Må fylles ut og kan være maks 100 tegn.
+        /// </summary>
+        [Required(ErrorMessage = "Obstacle type is required.")]
+        [MaxLength(100)]
+        public string ObstacleType { get; set; }
 
         /// <summary>
         /// Høyden på hinderet i meter.
