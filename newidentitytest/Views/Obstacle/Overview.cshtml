@@ -43,20 +43,38 @@
         {
             <div class="mt-4 space-y-2">
                 <p><strong>Location:</strong> 
-                    @{ // Deserialiserer lokasjonen til et JSON-objekt og henter ut koordinatene. 
-                        // Dersom det ikke lykkes vil de vise error melding.
+                    @{ // Deserialiserer lokasjonen og viser ryddig tekst uten GeoJSON-type
                         try
                         {
                             var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(Model.ObstacleLocation);
-                            var coordinates = geo.GetProperty("coordinates");
-                            var lng = coordinates[0].GetDecimal();
-                            var lat = coordinates[1].GetDecimal();
-                            <text>Lat: @lat, Lng: @lng</text>
+                            string type = geo.TryGetProperty("type", out var tEl) ? tEl.GetString() : null;
+                            if (string.Equals(type, "LineString", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                var coords = geo.GetProperty("coordinates");
+                                var parts = new System.Collections.Generic.List<string>();
+                                foreach (var p in coords.EnumerateArray())
+                                {
+                                    var lng = p[0].GetDecimal();
+                                    var lat = p[1].GetDecimal();
+                                    parts.Add($"({lat:F6}, {lng:F6})");
+                                }
+                                <text>@string.Join(" -> ", parts)</text>
+                            }
+                            else if (string.Equals(type, "Point", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                var coordinates = geo.GetProperty("coordinates");
+                                var lng = coordinates[0].GetDecimal();
+                                var lat = coordinates[1].GetDecimal();
+                                var txt = $"({lat:F6}, {lng:F6})";
+                                <text>@txt</text>
+                            }
+                            else
+                            {
+                                // Ukjent format: vis kort tekst uten støy
+                                <text>Location data received</text>
+                            }
                         }
-                        catch
-                        {
-                            <text>@Model.ObstacleLocation</text>
-                        }
+                        catch { <text>Location data received</text>; }
                     }
                 </p>
                 <div id="map2" style="height: 320px;" class="rounded-xl ring-1 ring-gray-200"></div>
@@ -64,19 +82,60 @@
 
             <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
             <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+            <script src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js"></script>
 
             <script>
                 // Dersom lokasjoninfo ikke kan hentes vil de vise error melding.
 
                     try
                     {
-                        var geo = JSON.parse(@Html.Raw(Json.Serialize(Model.ObstacleLocation)));
-                        var lng = geo.coordinates[0];
-                        var lat = geo.coordinates[1];
+                        // Init map first so tiles always load even if parsing fails
+                        var map2 = L.map('map2');
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap contributors'}).addTo(map2);
+                        // Ensure tiles load even if parsing fails
+                        map2.setView([59.91, 10.75], 5);
 
-                        var map2 = L.map('map2').setView([lat, lng], 13);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap'}).addTo(map2);
-                        L.marker([lat, lng]).addTo(map2);
+                        // Robustly parse location which may be a JSON string containing JSON
+                        var raw = @Html.Raw(Json.Serialize(Model.ObstacleLocation));
+                        var geo = JSON.parse(raw);
+                        if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch(_) {} }
+
+                        // Støtt både Point og LineString på oversiktskartet
+                        if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates)) {
+                            var latlngs = geo.coordinates.map(function(c){ return [c[1], c[0]]; });
+                            var pl = L.polyline(latlngs, { color: 'red', weight: 4, opacity: 1, lineCap: 'butt' }).addTo(map2);
+                            // End-caps as small circles
+                            if (latlngs.length > 0) {
+                                var start = latlngs[0];
+                                var end = latlngs[latlngs.length - 1];
+                                L.circleMarker(start, { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map2).bringToFront();
+                                L.circleMarker(end,   { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map2).bringToFront();
+                            }
+                            // Dots along the line (if plugin present)
+                            if (L && typeof L.polylineDecorator === 'function') {
+                                L.polylineDecorator(pl, {
+                                    patterns: [
+                                        {
+                                            offset: 0,
+                                            repeat: '80px',
+                                            symbol: L.Symbol.marker({
+                                                rotate: false,
+                                                markerOptions: { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }
+                                            })
+                                        }
+                                    ]
+                                }).addTo(map2);
+                            }
+                            map2.fitBounds(pl.getBounds(), { padding: [20, 20] });
+                        } else if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates)) {
+                            var lng = geo.coordinates[0];
+                            var lat = geo.coordinates[1];
+                            map2.setView([lat, lng], 13);
+                            L.marker([lat, lng]).addTo(map2);
+                        } else {
+                            // Fallback: center Norway if unknown format
+                            map2.setView([60.39, 5.32], 6);
+                        }
                     }
 
                     catch (error)
