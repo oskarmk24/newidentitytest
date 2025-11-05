@@ -64,9 +64,16 @@
 
                     try
                     {
-                        var geo = JSON.parse(@Html.Raw(Json.Serialize(Model.ObstacleLocation)));
+                        // Init map first so tiles always load even if parsing fails
                         var map2 = L.map('map2');
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap'}).addTo(map2);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap contributors'}).addTo(map2);
+                        // Ensure tiles load even if parsing fails
+                        map2.setView([59.91, 10.75], 5);
+
+                        // Robustly parse location which may be a JSON string containing JSON
+                        var raw = @Html.Raw(Json.Serialize(Model.ObstacleLocation));
+                        var geo = JSON.parse(raw);
+                        if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch(_) {} }
 
                         // Støtt både Point og LineString på oversiktskartet
                         if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates)) {
@@ -95,11 +102,14 @@
                                 }).addTo(map2);
                             }
                             map2.fitBounds(pl.getBounds(), { padding: [20, 20] });
-                        } else {
+                        } else if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates)) {
                             var lng = geo.coordinates[0];
                             var lat = geo.coordinates[1];
                             map2.setView([lat, lng], 13);
                             L.marker([lat, lng]).addTo(map2);
+                        } else {
+                            // Fallback: center Norway if unknown format
+                            map2.setView([60.39, 5.32], 6);
                         }
                     }
 
