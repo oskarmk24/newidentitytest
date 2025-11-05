@@ -4,22 +4,7 @@
     ViewData["Title"] = "Register Obstacle";
 }
 
-<!-- Kartseksjon for å velge posisjon (map first) -->
 <section class="mx-auto max-w-2xl">
-    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Map</h1>
-        </header>
-
-        <!-- Selve kartet -->
-        <div id="map"></div>
-
-        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
-        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
-    </div>
-</section>
-
-<section class="mx-auto max-w-2xl pt-6" id="formSection" style="display:none;">
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
         <header class="mb-6">
             <h1 class="text-2xl font-semibold">Obstacle Registration Form</h1>
@@ -32,7 +17,7 @@
             <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
 
             <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket på kartet -->
-            <!-- Change input to visually hidden text so jQuery Validate doesn't ignore it -->
+            <!-- Endret til visuelt skjult tekstfelt slik at jQuery Validate ikke ignorerer det -->
             <input type="text" asp-for="ObstacleLocation" id="ObstacleLocation"
                    style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
                    aria-hidden="true" tabindex="-1" />
@@ -72,6 +57,17 @@
 
                     <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
                 </div>
+
+                <!-- Bredde på hinder (valgfri, kun for visning i kart) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-800 mb-1">
+                        Obstacle Width (optional, meters)
+                    </label>
+                    <input id="ObstacleWidthDisplay" type="number" step="any"
+                           class="block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2"
+                           placeholder="e.g., 1.2" />
+                    <div class="text-xs text-gray-600 mt-1">Only stored locally for map display.</div>
+                </div>
             </div>
 
             <!-- Beskrivelse av hinder -->
@@ -95,7 +91,20 @@
 </section>
 
 
-<!-- (removed duplicate bottom map section) -->
+<!-- Kartseksjon for å velge posisjon -->
+<section class="mx-auto max-w-2xl pt-6">
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+        <header class="mb-6">
+            <h1 class="text-2xl font-semibold">Map</h1>
+        </header>
+
+        <!-- Selve kartet -->
+        <div id="map"></div>
+
+        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
+        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
+    </div>
+</section>
 
 <!-- Størrelse på kartet -->
 <style>
@@ -121,7 +130,7 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.js" charset="utf-8"></script>
     
     <script>
-        // Include hidden inputs in client-side validation so ObstacleLocation (hidden) shows errors
+        // Inkluder skjulte felt i klientsidevalidering slik at ObstacleLocation (skjult) viser feil
         if (window.jQuery && jQuery.validator) {
             jQuery(function(){
                 var $form = jQuery('form[method="post"][action$="DataForm"], form').first();
@@ -130,20 +139,18 @@
                 else { jQuery.validator.setDefaults({ ignore: [] }); }
             });
         }
-        // Starter kartet og setter standardvisning (Bergen)
-        var map = L.map('map').setView([60.39, 5.32], 13);
+
+          // Starter kartet, og ber om brukerens posisjon for å sentrere kartet på nåværende
+        const map = L.map('map').setView([0, 0], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 16
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
-
-        map.locate({ setView: true, maxZoom: 16 });
-
-        // Holder referanse til markøren + skjult input
+        
         var marker = null;
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
-        var formSection = document.getElementById('formSection');
+        var savedObstaclesLayer = L.layerGroup().addTo(map); // lag for vedvarende (lagrede) hinder
 
         // Lagrer posisjon i JSON-format i skjult input
         function setLocation(lat, lng) {
@@ -156,11 +163,6 @@
                 hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
 
-            // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
-            if (formSection && formSection.style.display === 'none') {
-                formSection.style.display = 'block';
-                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
         }
 
         // Plasserer eller flytter markør på kartet
@@ -185,6 +187,53 @@
         // Lokaliserer posisjon
         L.control.locate().addTo(map);
 
+        // ---------------- Lagre hinder, etter innsending (localStorage) ----------------
+        const LS_KEY = 'persisted_obstacles_v1';
+
+        // Les inn alle lagrede hinder fra localStorage
+        function loadSavedObstacles() {
+            try {
+                const raw = localStorage.getItem(LS_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (_) { return []; }
+        }
+
+        // Lagre listen over hinder tilbake til localStorage
+        function saveAll(obstacles) {
+            try { localStorage.setItem(LS_KEY, JSON.stringify(obstacles)); } catch (_) { /* ignore */ }
+        }
+
+        // Tegn lagrede hinder i kartet med popup og verktøytips (tooltip)
+        function renderSavedObstacles() {
+            savedObstaclesLayer.clearLayers();
+            const obstacles = loadSavedObstacles();
+            obstacles.forEach(o => {
+                if (!o || typeof o.lat !== 'number' || typeof o.lng !== 'number') return;
+                const label = o.type || 'Obstacle';
+                const h = (o.height != null && o.height !== '') ? `${o.height} m` : 'Not specified';
+                const w = (o.width != null && o.width !== '') ? `${o.width} m` : 'Not specified';
+                const popupHtml = `
+                    <div style="min-width:180px">
+                        <div><strong>Type:</strong> ${label}</div>
+                        <div><strong>Height:</strong> ${h}</div>
+                        <div><strong>Width:</strong> ${w}</div>
+                    </div>`;
+                const cm = L.circleMarker([o.lat, o.lng], {
+                    radius: 8,
+                    color: '#b91c1c', // red border
+                    weight: 2,
+                    fillColor: '#dc2626', // red fill
+                    fillOpacity: 0.8
+                });
+                cm.bindPopup(popupHtml);
+                cm.bindTooltip(`${label} • H:${h}${o.width?` • W:${w}`:''}`, { sticky: true });
+                cm.addTo(savedObstaclesLayer);
+            });
+        }
+
+        // Ved første innlasting: tegn eventuelle lagrede hinder
+        renderSavedObstacles();
+
 
         // ----- Height unit toggle (Meters <-> Feet) -----
         (function () {
@@ -196,12 +245,12 @@
             var M_TO_FT = 3.28084;
             var currentUnit = 'm'; // 'm' for meters, 'ft' for feet
 
-            // Safety guard: if any element is missing, skip setup to avoid runtime errors
+            // Sikkerhet: hopp over oppsett om element mangler for å unngå feil
             if (!hiddenMeters || !displayInput || !unitToggle || !unitText) {
                 return;
             }
 
-            // Read range from MVC unobtrusive attributes if present; fallback to 0..200
+            // Les min/maks fra MVC-attributter om de finnes; ellers 0..200
             var minMetersAttr = hiddenMeters ? hiddenMeters.getAttribute('data-val-range-min') : null;
             var maxMetersAttr = hiddenMeters ? hiddenMeters.getAttribute('data-val-range-max') : null;
             var minMeters = (minMetersAttr !== null && minMetersAttr !== '') ? parseFloat(minMetersAttr) : 0;
@@ -209,7 +258,7 @@
 
             function parseNumber(val) {
                 if (val === null || val === undefined) return NaN;
-                // Replace comma with dot for decimal if needed
+                // Bytt komma til punktum for desimaler ved behov
                 var s = String(val).replace(',', '.').trim();
                 var n = parseFloat(s);
                 return isNaN(n) ? NaN : n;
@@ -246,7 +295,7 @@
                 }
             }
 
-            // Dynamic validation message reflecting the selected unit and server-side bounds
+            // Dynamisk valideringsmelding basert på valgt enhet og servergrenser
             var valSpan = document.querySelector('span[data-valmsg-for="ObstacleHeight"]');
             function updateValidationMessage() {
                 if (!valSpan) return;
@@ -271,10 +320,10 @@
                 updateValidationMessage();
             }
 
-            // Initialize from server value (meters)
+            // Initialiser fra serververdi (meter)
             syncDisplayFromHidden();
 
-            // Events
+            // Hendelser
             displayInput.addEventListener('input', function(){
                 updateHiddenFromDisplay();
                 updateValidationMessage();
@@ -283,22 +332,66 @@
                 setUnit(unitToggle.checked ? 'ft' : 'm');
             });
 
-            // Ensure meters posted on submit even if user toggled to feet
+            // Sørg for at meter sendes ved innsending selv om bruker valgte fot
             var form = displayInput.form;
             if (form) {
                 form.addEventListener('submit', function () {
-                    // Update hidden from display right before submit
+                    // Oppdater skjult felt fra visningsfeltet rett før innsending
                     updateHiddenFromDisplay();
+                    try {
+                        // Samle gjeldende hinderdata og lagre lokalt slik at de vises etter innsending/refresh
+                        var nameEl = document.getElementById('ObstacleName');
+                        var widthEl = document.getElementById('ObstacleWidthDisplay');
+                        var locRaw = hidden.value ? JSON.parse(hidden.value) : null;
+                        var lat = null, lng = null;
+                        if (locRaw && Array.isArray(locRaw.coordinates) && locRaw.coordinates.length === 2) {
+                            lng = Number(locRaw.coordinates[0]);
+                            lat = Number(locRaw.coordinates[1]);
+                        }
+                        // Lagre kun dersom vi har en gyldig posisjon
+                        if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
+                            var obstacles = loadSavedObstacles();
+                            obstacles.push({
+                                id: Date.now(),
+                                type: nameEl ? nameEl.value : 'Obstacle',
+                                height: hiddenMeters && hiddenMeters.value !== '' ? Number(hiddenMeters.value) : null,
+                                width: widthEl && widthEl.value !== '' ? Number(widthEl.value) : null,
+                                lat: lat,
+                                lng: lng
+                            });
+                            saveAll(obstacles);
+                        }
+                    } catch (_) { /* ignore */ }
                 });
             }
 
-            // Observe changes to the validation span (when jQuery Validate updates it)
+            // Observer endringer i valideringsfeltet (når jQuery Validate oppdaterer det)
             if (valSpan && 'MutationObserver' in window) {
                 var observer = new MutationObserver(function () { updateValidationMessage(); });
                 observer.observe(valSpan, { childList: true, characterData: true, subtree: true });
             }
         })();
-        // ----- End unit toggle -----
+        // ----- Slutt på enhetsbryter -----
 
+        // Lokaliserer og viser brukerens posisjon automatisk når kartet lastes inn
+        map.locate({ setView: true, maxZoom: 15 });
+
+        // Hendelseslytter for når posisjonen blir funnet
+        map.on('locationfound', function (e) {
+            // Legger til en blå markør med hvit kant for brukerens posisjon
+            L.circleMarker(e.latlng, {
+                radius: 8,
+                fillColor: '#007bff', // Blå fyllfarge
+                color: '#ffffff', // Hvit kant
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(map);
+        });
+
+        // Hendelseslytter for feil ved lokalisering
+        map.on('locationerror', function () {
+            alert('Kunne ikke hente posisjonen din.');
+        });
     </script>
 }
