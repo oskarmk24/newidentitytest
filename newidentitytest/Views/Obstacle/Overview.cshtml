@@ -57,6 +57,7 @@
 
             <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
             <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+            <script src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js"></script>
 
             <script>
                 // Dersom lokasjoninfo ikke kan hentes vil de vise error melding.
@@ -64,12 +65,42 @@
                     try
                     {
                         var geo = JSON.parse(@Html.Raw(Json.Serialize(Model.ObstacleLocation)));
-                        var lng = geo.coordinates[0];
-                        var lat = geo.coordinates[1];
-
-                        var map2 = L.map('map2').setView([lat, lng], 13);
+                        var map2 = L.map('map2');
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap'}).addTo(map2);
-                        L.marker([lat, lng]).addTo(map2);
+
+                        // Støtt både Point og LineString på oversiktskartet
+                        if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates)) {
+                            var latlngs = geo.coordinates.map(function(c){ return [c[1], c[0]]; });
+                            var pl = L.polyline(latlngs, { color: 'red', weight: 4, opacity: 1, lineCap: 'butt' }).addTo(map2);
+                            // End-caps as small circles
+                            if (latlngs.length > 0) {
+                                var start = latlngs[0];
+                                var end = latlngs[latlngs.length - 1];
+                                L.circleMarker(start, { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map2).bringToFront();
+                                L.circleMarker(end,   { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map2).bringToFront();
+                            }
+                            // Dots along the line (if plugin present)
+                            if (L && typeof L.polylineDecorator === 'function') {
+                                L.polylineDecorator(pl, {
+                                    patterns: [
+                                        {
+                                            offset: 0,
+                                            repeat: '80px',
+                                            symbol: L.Symbol.marker({
+                                                rotate: false,
+                                                markerOptions: { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }
+                                            })
+                                        }
+                                    ]
+                                }).addTo(map2);
+                            }
+                            map2.fitBounds(pl.getBounds(), { padding: [20, 20] });
+                        } else {
+                            var lng = geo.coordinates[0];
+                            var lat = geo.coordinates[1];
+                            map2.setView([lat, lng], 13);
+                            L.marker([lat, lng]).addTo(map2);
+                        }
                     }
 
                     catch (error)

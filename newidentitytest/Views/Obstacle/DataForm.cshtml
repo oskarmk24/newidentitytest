@@ -91,7 +91,7 @@
         <div id="map"></div>
 
         <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
-        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
+        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Velg Point eller Linear. Klikk i kartet for å registrere.</div>
     </div>
 </section>
 
@@ -108,6 +108,13 @@
     .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
     input:checked + .slider { background-color: #2563eb; }
     input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Leaflet custom control button styles */
+    .leaflet-bar .mode-btn { width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
+    .leaflet-bar .mode-btn:hover { background: #f4f4f4; }
+    .leaflet-bar .mode-btn.active { background: #e5e7eb; }
+    .leaflet-bar .mode-btn svg { width: 16px; height: 16px; display: block; }
+    .leaflet-bar .mode-btn img { width: 16px; height: 24px; display: block; object-fit: contain; }
 </style>
 
 @section Scripts {
@@ -142,7 +149,17 @@
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
 
-        // Lagrer posisjon i JSON-format i skjult input
+        // Enkel modus-velger og state for linje
+        var drawMode = 'point'; // 'point' eller 'line'
+        var modePoint = document.getElementById('modePoint');
+        var modeLine = document.getElementById('modeLine');
+        var clearBtn = document.getElementById('clearDrawBtn');
+        var linePoints = []; // [ [lat, lng], ... ]
+        var polyline = null; // Leaflet polyline for visning
+        var startCircle = null; // circle at start of line
+        var endCircle = null;   // circle at end of line
+
+        // Lagrer posisjon i JSON-format i skjult input (Point)
         function setLocation(lat, lng) {
             var payload = {
                 type: "Point",
@@ -153,6 +170,15 @@
                 hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
 
+        }
+
+        // Lagrer linje i JSON-format (GeoJSON LineString)
+        function setLocationLine(points) { // points: [ [lat, lng], ... ]
+            if (!points || points.length < 2) { hidden.value = ''; return; }
+            var coords = points.map(function (p) { return [Number(p[1].toFixed(6)), Number(p[0].toFixed(6))]; });
+            var payload = { type: "LineString", coordinates: coords };
+            hidden.value = JSON.stringify(payload);
+            if (hint) { hint.textContent = 'Line with ' + points.length + ' points.'; }
         }
 
         // Plasserer eller flytter markør på kartet
@@ -171,11 +197,108 @@
 
         // Når brukeren klikker på kartet, plasser markør og oppdater skjult input
         map.on('click', function (e) {
-            placeOrMoveMarker(e.latlng);
+            // Velg: punkt eller bygg linje
+            if (typeof drawMode === 'string' && drawMode === 'line') {
+                linePoints.push([e.latlng.lat, e.latlng.lng]);
+                if (!polyline) { polyline = L.polyline(linePoints, { color: 'red', weight: 4, lineCap: 'butt' }).addTo(map); }
+                else { polyline.setLatLngs(linePoints); }
+                // update end-cap circles
+                if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
+                if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+                if (linePoints.length > 0) {
+                    startCircle = L.circleMarker(linePoints[0], { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map);
+                }
+                if (linePoints.length > 1) {
+                    endCircle = L.circleMarker(linePoints[linePoints.length - 1], { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map);
+                }
+                if (linePoints.length >= 2) { setLocationLine(linePoints); }
+                else { hidden.value = ''; if (hint) hint.textContent = 'Add at least 2 points for a line.'; }
+            } else {
+                placeOrMoveMarker(e.latlng);
+            }
         });
 
         // Lokaliserer posisjon
         L.control.locate().addTo(map);
+
+        // Leaflet-kontroll inne i kartet: Point / Linear / Clear
+        (function(){
+            var ctrl = L.control({ position: 'topleft' });
+            ctrl.onAdd = function(map){
+                var container = L.DomUtil.create('div', 'leaflet-bar');
+
+                var btnPoint = L.DomUtil.create('a', 'mode-btn', container);
+                btnPoint.href = '#'; btnPoint.title = 'Point'; btnPoint.setAttribute('aria-label','Point');
+                // Use Leaflet's default marker icon for a familiar look
+                btnPoint.innerHTML = '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" alt="Point">';
+
+                var btnLine = L.DomUtil.create('a', 'mode-btn', container);
+                btnLine.href = '#'; btnLine.title = 'Linear'; btnLine.setAttribute('aria-label','Linear');
+                btnLine.innerHTML = '\n<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n  <path d="M4 16 L20 8" stroke="red" stroke-width="3" stroke-linecap="butt" fill="none"/>\n  <circle cx="4" cy="16" r="3" fill="red" stroke="#111" stroke-width="2"/>\n  <circle cx="20" cy="8" r="3" fill="red" stroke="#111" stroke-width="2"/>\n</svg>\n';
+
+                var btnClear = L.DomUtil.create('a', 'mode-btn', container);
+                btnClear.href = '#'; btnClear.title = 'Clear'; btnClear.setAttribute('aria-label','Clear');
+                btnClear.innerHTML = '\n<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n  <path d="M6 6 L18 18 M18 6 L6 18" stroke="#111" stroke-width="2" stroke-linecap="round"/>\n</svg>\n';
+
+                function updateActive(){
+                    btnPoint.classList.toggle('active', drawMode === 'point');
+                    btnLine.classList.toggle('active', drawMode === 'line');
+                }
+
+                L.DomEvent.on(btnPoint, 'click', function(e){ L.DomEvent.preventDefault(e); setMode('point'); updateActive(); });
+                L.DomEvent.on(btnLine,  'click', function(e){ L.DomEvent.preventDefault(e); setMode('line');  updateActive(); });
+                L.DomEvent.on(btnClear, 'click', function(e){
+                    L.DomEvent.preventDefault(e);
+                    // Slett både punkt og linje
+                    if (marker) { map.removeLayer(marker); marker = null; }
+                    if (polyline) { map.removeLayer(polyline); polyline = null; }
+                    if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
+                    if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+                    linePoints = [];
+                    hidden.value = '';
+                    if (hint) hint.textContent = (drawMode === 'line') ? 'Linear mode: click to add points.' : 'Click the map to drop a pin.';
+                });
+
+                // Hindrer at klikk på kontrollen bobler til kartet
+                L.DomEvent.disableClickPropagation(container);
+                L.DomEvent.disableScrollPropagation(container);
+
+                updateActive();
+                return container;
+            };
+            ctrl.addTo(map);
+        })();
+
+        // Bytte modus og clear-knapp
+        function setMode(mode) {
+            drawMode = mode;
+            if (mode === 'point') {
+                // Rydd bort linje
+                linePoints = [];
+                if (polyline) { map.removeLayer(polyline); polyline = null; }
+                if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
+                if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+                hidden.value = '';
+                if (hint) hint.textContent = 'Click the map to drop a pin.';
+            } else {
+                // Fjern punkt-markør
+                if (marker) { map.removeLayer(marker); marker = null; }
+                hidden.value = '';
+                if (hint) hint.textContent = 'Linear mode: click to add points.';
+            }
+        }
+        if (typeof modePoint !== 'undefined' && modePoint) modePoint.addEventListener('change', function(){ if (this.checked) setMode('point'); });
+        if (typeof modeLine !== 'undefined' && modeLine) modeLine.addEventListener('change', function(){ if (this.checked) setMode('line'); });
+        if (typeof clearBtn !== 'undefined' && clearBtn) clearBtn.addEventListener('click', function(){
+            // Slett både punkt og linje
+            if (marker) { map.removeLayer(marker); marker = null; }
+            if (polyline) { map.removeLayer(polyline); polyline = null; }
+            if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
+            if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+            linePoints = [];
+            hidden.value = '';
+            if (hint) hint.textContent = 'Cleared. Choose Point or Linear and click the map.';
+        });
 
 
         // ----- Height unit toggle (Meters <-> Feet) -----
