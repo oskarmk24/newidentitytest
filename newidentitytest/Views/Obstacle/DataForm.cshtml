@@ -4,9 +4,11 @@
     ViewData["Title"] = "Register Obstacle";
 }
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
+
 <!-- Kartseksjon for å velge posisjon (map first) -->
-<section class="mx-auto max-w-2xl">
-    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+<section id="mapWrapper" class="mx-auto max-w-2xl map-fullscreen">
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 map-card">
         <header class="mb-6">
             <h1 class="text-2xl font-semibold">Map</h1>
         </header>
@@ -39,13 +41,123 @@
             <span asp-validation-for="ObstacleLocation" class="text-sm text-red-600"></span>
 
             <div class="grid gap-5 sm:grid-cols-2">
-                <!-- Navn på hinder -->
                 <div class="sm:col-span-2">
-                    <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Name</label>
-                    <input asp-for="ObstacleName"
-                           class="block w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2"
-                           placeholder="e.g., Wall, Ramp" />
-                    <span asp-validation-for="ObstacleName" class="text-sm text-red-600"></span>
+                    <div class="flex items-center justify-between gap-3 mb-1">
+                        <label class="block text-sm font-medium text-gray-800">Velg hindertype</label>
+                        <button type="button" id="ObstacleTypeInfoToggle" class="material-symbols-outlined text-gray-500 hover:text-gray-700 transition-colors"
+                                aria-expanded="false" aria-controls="ObstacleTypeInfoPanel" title="Vis informasjon om hindertyper">
+                            info
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Klikk på informasjonsikonet for å se eksempler knyttet til hver hindertype.</p>
+                    <div id="ObstacleTypeInfoPanel" class="hidden mt-3 rounded-xl border border-gray-200 bg-slate-50 p-4 text-sm text-gray-700 shadow-sm">
+                        <p class="font-semibold text-gray-800">Eksempler per hindertype</p>
+                        <div class="mt-3 space-y-4">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Punkt</h3>
+                                <ul class="mt-1 list-disc list-inside space-y-1">
+                                    <li>Annet</li>
+                                    <li>Bygning</li>
+                                    <li>Flaggstang</li>
+                                    <li>ForankretBallong</li>
+                                    <li>Fornøyelsesparkinnretning</li>
+                                    <li>Fyrtårn</li>
+                                    <li>Hopptårn</li>
+                                    <li>Kjøletårn</li>
+                                    <li>Kontrolltårn</li>
+                                    <li>Kraftverk</li>
+                                    <li>Kran</li>
+                                    <li>Kuppel</li>
+                                    <li>Monument</li>
+                                    <li>Navigasjonshjelpemiddel</li>
+                                    <li>Petroleumsinnretning</li>
+                                    <li>Pipe</li>
+                                    <li>Raffineri</li>
+                                    <li>Silo</li>
+                                    <li>Sprengningstårn</li>
+                                    <li>Tank</li>
+                                    <li>Tårn</li>
+                                    <li>Vanntårn</li>
+                                    <li>Vindturbin</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Mast</h3>
+                                <ul class="mt-1 list-disc list-inside space-y-1">
+                                    <li>Annet</li>
+                                    <li>Belysningsmast</li>
+                                    <li>Ekommast</li>
+                                    <li>Høgspentmast</li>
+                                    <li>Kontaktledningsmast</li>
+                                    <li>Lavspentmast</li>
+                                    <li>Målemast</li>
+                                    <li>Radiomast</li>
+                                    <li>Taubanemast</li>
+                                    <li>Telemast</li>
+                                    <li>Transmisjonmast</li>
+                                    <li>Regionalmast</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Luftspenn</h3>
+                                <ul class="mt-1 list-disc list-inside space-y-1">
+                                    <li>Annet</li>
+                                    <li>Bardun</li>
+                                    <li>Gondolbane</li>
+                                    <li>Ekom</li>
+                                    <li>Høgspent</li>
+                                    <li>Transmisjon</li>
+                                    <li>Regional</li>
+                                    <li>Kontaktledning</li>
+                                    <li>Lavspent</li>
+                                    <li>Løypestreng</li>
+                                    <li>Skitrekk</li>
+                                    <li>Stolheis</li>
+                                    <li>Taubane</li>
+                                    <li>Vaier</li>
+                                    <li>Zipline</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Linje</h3>
+                                <ul class="mt-1 list-disc list-inside space-y-1">
+                                    <li>Annet</li>
+                                    <li>Bru</li>
+                                    <li>Demning</li>
+                                    <li>Gjerde</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Flate</h3>
+                                <ul class="mt-1 list-disc list-inside space-y-1">
+                                    <li>Kontaktledning</li>
+                                    <li>Trafostasjon</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <input asp-for="ObstacleType" type="hidden" id="ObstacleType" />
+                    <input asp-for="ObstacleName" type="hidden" id="ObstacleName" />
+                    <div id="ObstacleTypeOptions" class="flex flex-col gap-3">
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Punkt" aria-pressed="false">
+                                <span class="obstacle-type-label">Punkt</span>
+                            </button>
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Mast" aria-pressed="false">
+                                <span class="obstacle-type-label">Mast</span>
+                            </button>
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Luftspenn" aria-pressed="false">
+                                <span class="obstacle-type-label">Luftspenn</span>
+                            </button>
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Linje" aria-pressed="false">
+                                <span class="obstacle-type-label">Linje</span>
+                            </button>
+                        </div>
+                        <button type="button" class="obstacle-type-button obstacle-type-button-wide" data-obstacle-type="Flate" aria-pressed="false">
+                            <span class="obstacle-type-label">Flate</span>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ObstacleType" class="text-sm text-red-600"></span>
                 </div>
 
                 <!-- Høyde på hinder -->
@@ -56,10 +168,12 @@
                     <!-- Hidden, model-bound input stores meters for server-side validation -->
                     <input asp-for="ObstacleHeight" type="hidden" id="ObstacleHeight" />
 
-                    <!-- Visible input the user interacts with; value shown in selected unit -->
-                    <input id="ObstacleHeightDisplay" type="number" step="any"
-                           class="block w-full rounded-md border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2 mb-2"
-                           placeholder="e.g., 2.5" />
+                    <!-- Visible slider controlling the height; value shown below -->
+                    <input id="ObstacleHeightDisplay" type="range" min="0" max="200" step="0.1"
+                           class="w-full accent-indigo-600" aria-describedby="ObstacleHeightValue ObstacleHeightDisplayUnit" />
+                    <div class="mt-2 text-sm text-gray-600">
+                        <span id="ObstacleHeightValue">0.0</span> <span id="ObstacleHeightDisplayUnit">meters</span>
+                    </div>
 
                     <!-- Simple on/off switch for ft/m -->
                     <div class="mt-1 flex items-center justify-start gap-2">
@@ -99,6 +213,15 @@
 
 <!-- Størrelse på kartet -->
 <style>
+    #mapWrapper { transition: all 0.3s ease; }
+    #mapWrapper.map-fullscreen { position: fixed; inset: 0; z-index: 30; width: 100%; max-width: none; margin: 0; padding: 0; display: flex; justify-content: stretch; align-items: stretch; background-color: #20293b; }
+    #mapWrapper.map-fullscreen .map-card { position: relative; width: 100%; height: 100%; max-width: none; border: none; border-radius: 0; padding: 0; box-shadow: none; background: transparent; display: flex; flex-direction: column; }
+    #mapWrapper.map-fullscreen header { position: absolute; top: 1.5rem; left: 1.5rem; margin: 0; padding: 0.75rem 1.25rem; border-radius: 0.75rem; background-color: rgba(15, 23, 42, 0.75); color: #f8fafc; z-index: 40; }
+    #mapWrapper.map-fullscreen #coordsHint { position: absolute; bottom: 1.5rem; left: 1.5rem; margin: 0; padding: 0.65rem 1rem; border-radius: 0.75rem; background-color: rgba(15, 23, 42, 0.65); color: #e2e8f0; z-index: 40; }
+    #mapWrapper.map-fullscreen header h1 { color: inherit; }
+    #mapWrapper.map-fullscreen #map { height: 100%; border-radius: 0; }
+    body.map-lock { overflow: hidden; }
+
     #map {
         height: 400px;
     }
@@ -110,6 +233,13 @@
     .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
     input:checked + .slider { background-color: #2563eb; }
     input:checked + .slider:before { transform: translateX(20px); }
+    .obstacle-type-button { width: 100%; display: flex; align-items: center; justify-content: center; border-radius: 1rem; border: 1px solid #d1d5db; background-color: #ffffff; color: #1f2937; padding: 0.9rem 1.25rem; font-size: 1rem; font-weight: 500; transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease; }
+    .obstacle-type-button:hover { background-color: #f8fafc; border-color: #cbd5f5; }
+    .obstacle-type-button:focus { outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); border-color: #6366f1; }
+    .obstacle-type-button.obstacle-type-selected { background-color: #eef2ff; border-color: #6366f1; color: #1e1b4b; box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25); }
+    .obstacle-type-button-wide { padding: 1rem 1.5rem; }
+    .obstacle-type-label { display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
 </style>
 
 @section Scripts {
@@ -130,6 +260,87 @@
                 else { jQuery.validator.setDefaults({ ignore: [] }); }
             });
         }
+
+        // ----- Obstacle type selector -----
+        (function () {
+            var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-obstacle-type]'));
+            var hiddenType = document.getElementById('ObstacleType');
+            var hiddenName = document.getElementById('ObstacleName');
+
+            if (!buttons.length || !hiddenType || !hiddenName) {
+                return;
+            }
+
+            function select(value) {
+                buttons.forEach(function (btn) {
+                    var isSelected = btn.getAttribute('data-obstacle-type') === value;
+                    btn.classList.toggle('obstacle-type-selected', isSelected);
+                    btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+                });
+                hiddenType.value = value;
+                hiddenName.value = value;
+            }
+
+            buttons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var value = btn.getAttribute('data-obstacle-type');
+                    select(value);
+                });
+            });
+
+            if (hiddenType.value) {
+                select(hiddenType.value);
+            }
+        })();
+        // ----- End obstacle type selector -----
+
+        // ----- Obstacle type info toggle -----
+        (function () {
+            var toggle = document.getElementById('ObstacleTypeInfoToggle');
+            var panel = document.getElementById('ObstacleTypeInfoPanel');
+
+            if (!toggle || !panel) {
+                return;
+            }
+
+            function showPanel() {
+                panel.classList.remove('hidden');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function hidePanel() {
+                if (!panel.classList.contains('hidden')) {
+                    panel.classList.add('hidden');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            toggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (panel.classList.contains('hidden')) {
+                    showPanel();
+                } else {
+                    hidePanel();
+                }
+            });
+
+            panel.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+
+            document.addEventListener('click', function () {
+                hidePanel();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    hidePanel();
+                }
+            });
+        })();
+        // ----- End obstacle type info toggle -----
+
         // Starter kartet og setter standardvisning (Bergen)
         var map = L.map('map').setView([60.39, 5.32], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -144,6 +355,11 @@
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
         var formSection = document.getElementById('formSection');
+        var mapWrapper = document.getElementById('mapWrapper');
+        var appBody = document.body;
+        if (appBody && mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
+            appBody.classList.add('map-lock');
+        }
 
         // Lagrer posisjon i JSON-format i skjult input
         function setLocation(lat, lng) {
@@ -160,6 +376,16 @@
             if (formSection && formSection.style.display === 'none') {
                 formSection.style.display = 'block';
                 formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            if (mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
+                mapWrapper.classList.remove('map-fullscreen');
+                if (appBody) {
+                    appBody.classList.remove('map-lock');
+                }
+                if (typeof map !== 'undefined' && map && map.invalidateSize) {
+                    setTimeout(function () { map.invalidateSize(); }, 200);
+                }
             }
         }
 
@@ -192,6 +418,8 @@
             var displayInput = document.getElementById('ObstacleHeightDisplay');
             var unitToggle = document.getElementById('unitToggle');
             var unitText = document.getElementById('unitText');
+            var displayValue = document.getElementById('ObstacleHeightValue');
+            var valueUnitText = document.getElementById('ObstacleHeightDisplayUnit');
 
             var M_TO_FT = 3.28084;
             var currentUnit = 'm'; // 'm' for meters, 'ft' for feet
@@ -224,6 +452,9 @@
                 var v = parseNumber(displayInput.value);
                 if (isNaN(v)) {
                     hiddenMeters.value = '';
+                    if (displayValue) {
+                        displayValue.textContent = '';
+                    }
                     return;
                 }
                 if (currentUnit === 'm') {
@@ -231,18 +462,27 @@
                 } else {
                     hiddenMeters.value = roundTo(v / M_TO_FT, 6);
                 }
+                if (displayValue) {
+                    displayValue.textContent = displayInput.value;
+                }
             }
 
             function syncDisplayFromHidden() {
                 var m = parseNumber(hiddenMeters.value);
                 if (isNaN(m)) {
-                    displayInput.value = '';
+                    displayInput.value = minMeters;
+                    if (displayValue) {
+                        displayValue.textContent = displayInput.value;
+                    }
                     return;
                 }
                 if (currentUnit === 'm') {
                     displayInput.value = m;
                 } else {
                     displayInput.value = roundTo(m * M_TO_FT, 2);
+                }
+                if (displayValue) {
+                    displayValue.textContent = displayInput.value;
                 }
             }
 
@@ -266,12 +506,26 @@
                 // Convert the displayed value to the new unit while keeping the same real height
                 currentUnit = unit;
                 unitText.textContent = unit === 'm' ? 'Meters' : 'Feet';
-                displayInput.placeholder = unit === 'm' ? 'e.g., 2.5' : 'e.g., 8.2';
+                if (valueUnitText) {
+                    valueUnitText.textContent = unit === 'm' ? 'meters' : 'feet';
+                }
+                if (unit === 'm') {
+                    displayInput.min = minMeters;
+                    displayInput.max = maxMeters;
+                    displayInput.step = 0.1;
+                } else {
+                    displayInput.min = roundTo(minMeters * M_TO_FT, 2);
+                    displayInput.max = roundTo(maxMeters * M_TO_FT, 2);
+                    displayInput.step = 0.5;
+                }
                 syncDisplayFromHidden();
                 updateValidationMessage();
             }
 
             // Initialize from server value (meters)
+            displayInput.min = minMeters;
+            displayInput.max = maxMeters;
+            displayInput.step = 0.1;
             syncDisplayFromHidden();
 
             // Events
