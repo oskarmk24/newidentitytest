@@ -71,12 +71,8 @@ namespace newidentitytest.Controllers
                     ObstacleDescription = obstacleData.ObstacleDescription,
                     ObstacleLocation = obstacleData.ObstacleLocation,
                     ObstacleType = obstacleData.ObstacleType,
-                    // Knytter rapporten til innlogget bruker via Identity-brukerens Id
                     UserId = userId
                 };
-
-                // Attach sender (logged-in user) to the report
-                report.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
                 // Lagrer data i databasen via EF Core
                 _dbContext.Reports.Add(report);
