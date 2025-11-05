@@ -6,7 +6,7 @@
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
 
-<!-- Kartseksjon for å velge posisjon (map first) -->
+<!-- Kartseksjon for ï¿½ velge posisjon (map first) -->
 <section id="mapWrapper" class="mx-auto max-w-2xl map-fullscreen">
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 map-card">
         <header class="mb-6">
@@ -16,7 +16,7 @@
         <!-- Selve kartet -->
         <div id="map"></div>
 
-        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
+        <!-- Hint-tekst som oppdateres nï¿½r bruker klikker i kartet -->
         <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
     </div>
 </section>
@@ -28,12 +28,12 @@
             <p class="text-gray-600 mt-1">Please register an obstacle</p>
         </header>
 
-        <!-- Skjema for å registrere hinder -->
+        <!-- Skjema for ï¿½ registrere hinder -->
         <form asp-action="DataForm" method="post" class="space-y-5">
             <!-- Viser feilmeldinger hvis valideringen feiler -->
             <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
 
-            <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket på kartet -->
+            <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket pï¿½ kartet -->
             <!-- Change input to visually hidden text so jQuery Validate doesn't ignore it -->
             <input type="text" asp-for="ObstacleLocation" id="ObstacleLocation"
                    style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
@@ -49,7 +49,7 @@
                             info
                         </button>
                     </div>
-                    <p class="text-sm text-gray-600 mb-3">Klikk på informasjonsikonet for å se eksempler knyttet til hver hindertype.</p>
+                    <p class="text-sm text-gray-600 mb-3">Klikk pï¿½ informasjonsikonet for ï¿½ se eksempler knyttet til hver hindertype.</p>
                     <div id="ObstacleTypeInfoPanel" class="hidden mt-3 rounded-xl border border-gray-200 bg-slate-50 p-4 text-sm text-gray-700 shadow-sm">
                         <p class="font-semibold text-gray-800">Eksempler per hindertype</p>
                         <div class="mt-3 space-y-4">
@@ -60,11 +60,11 @@
                                     <li>Bygning</li>
                                     <li>Flaggstang</li>
                                     <li>ForankretBallong</li>
-                                    <li>Fornøyelsesparkinnretning</li>
-                                    <li>Fyrtårn</li>
-                                    <li>Hopptårn</li>
-                                    <li>Kjøletårn</li>
-                                    <li>Kontrolltårn</li>
+                                    <li>Fornï¿½yelsesparkinnretning</li>
+                                    <li>Fyrtï¿½rn</li>
+                                    <li>Hopptï¿½rn</li>
+                                    <li>Kjï¿½letï¿½rn</li>
+                                    <li>Kontrolltï¿½rn</li>
                                     <li>Kraftverk</li>
                                     <li>Kran</li>
                                     <li>Kuppel</li>
@@ -74,10 +74,10 @@
                                     <li>Pipe</li>
                                     <li>Raffineri</li>
                                     <li>Silo</li>
-                                    <li>Sprengningstårn</li>
+                                    <li>Sprengningstï¿½rn</li>
                                     <li>Tank</li>
-                                    <li>Tårn</li>
-                                    <li>Vanntårn</li>
+                                    <li>Tï¿½rn</li>
+                                    <li>Vanntï¿½rn</li>
                                     <li>Vindturbin</li>
                                 </ul>
                             </div>
@@ -87,10 +87,10 @@
                                     <li>Annet</li>
                                     <li>Belysningsmast</li>
                                     <li>Ekommast</li>
-                                    <li>Høgspentmast</li>
+                                    <li>Hï¿½gspentmast</li>
                                     <li>Kontaktledningsmast</li>
                                     <li>Lavspentmast</li>
-                                    <li>Målemast</li>
+                                    <li>Mï¿½lemast</li>
                                     <li>Radiomast</li>
                                     <li>Taubanemast</li>
                                     <li>Telemast</li>
@@ -105,12 +105,12 @@
                                     <li>Bardun</li>
                                     <li>Gondolbane</li>
                                     <li>Ekom</li>
-                                    <li>Høgspent</li>
+                                    <li>Hï¿½gspent</li>
                                     <li>Transmisjon</li>
                                     <li>Regional</li>
                                     <li>Kontaktledning</li>
                                     <li>Lavspent</li>
-                                    <li>Løypestreng</li>
+                                    <li>Lï¿½ypestreng</li>
                                     <li>Skitrekk</li>
                                     <li>Stolheis</li>
                                     <li>Taubane</li>
@@ -160,7 +160,7 @@
                     <span asp-validation-for="ObstacleType" class="text-sm text-red-600"></span>
                 </div>
 
-                <!-- Høyde på hinder -->
+                <!-- Hï¿½yde pï¿½ hinder -->
                 <div>
                     <label class="block text-sm font-medium text-gray-800 mb-1">
                         Obstacle Height (<span id="unitText">Meters</span>)
@@ -197,7 +197,7 @@
                 <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
             </div>
 
-            <!-- Knapp for å sende inn skjemaet -->
+            <!-- Knapp for ï¿½ sende inn skjemaet -->
             <div class="pt-2">
                 <button type="submit"
                         class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -209,7 +209,7 @@
 </section>
 
 
-<!-- Kartseksjon for å velge posisjon -->
+<!-- Kartseksjon for ï¿½ velge posisjon -->
 <section class="mx-auto max-w-2xl pt-6">
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
         <header class="mb-6">
@@ -219,12 +219,12 @@
         <!-- Selve kartet -->
         <div id="map"></div>
 
-        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
-        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Velg Point eller Linear. Klikk i kartet for å registrere.</div>
+        <!-- Hint-tekst som oppdateres nï¿½r bruker klikker i kartet -->
+        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Velg Point eller Linear. Klikk i kartet for ï¿½ registrere.</div>
     </div>
 </section>
 
-<!-- Størrelse på kartet -->
+<!-- Stï¿½rrelse pï¿½ kartet -->
 <style>
     #mapWrapper { transition: all 0.3s ease; }
     #mapWrapper.map-fullscreen { position: fixed; inset: 0; z-index: 30; width: 100%; max-width: none; margin: 0; padding: 0; display: flex; justify-content: stretch; align-items: stretch; background-color: #20293b; }
@@ -361,19 +361,35 @@
         })();
         // ----- End obstacle type info toggle -----
 
-        // Starter kartet og setter standardvisning (Bergen)
-        var map = L.map('map').setView([60.39, 5.32], 13);
+        // Starter kartet og sentrerer fï¿½rst pï¿½ Kvadraturen i Kristiansand
+        const map = L.map('map').setView([58.1467, 7.9956], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 16
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        map.locate({ setView: true, maxZoom: 16 });
+        map.locate({ setView: true, maxZoom: 15 });
 
-        // Holder referanse til markøren + skjult input
+        map.on('locationfound', function (e) {
+            L.circleMarker(e.latlng, {
+                radius: 8,
+                fillColor: '#007bff',
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(map);
+        });
+
+        map.on('locationerror', function () {
+            alert('Kunne ikke hente posisjonen din.');
+        });
+
+        // Holder referanse til markï¿½ren + skjult input
         var marker = null;
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
+        var savedObstaclesLayer = L.layerGroup().addTo(map); // Lag for vedvarende (lagrede) hinder
         var formSection = document.getElementById('formSection');
         var mapWrapper = document.getElementById('mapWrapper');
         var appBody = document.body;
@@ -403,7 +419,7 @@
                 hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
 
-            // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
+            // Vis skjemaet for ï¿½ registrere hinder nï¿½r brukeren har valgt en posisjon pï¿½ kartet.
             if (formSection && formSection.style.display === 'none') {
                 formSection.style.display = 'block';
                 formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -441,7 +457,7 @@
             }
         }
 
-        // Plasserer eller flytter markør på kartet
+        // Plasserer eller flytter markï¿½r pï¿½ kartet
         function placeOrMoveMarker(latlng) {
             if (!marker) {
                 marker = L.marker(latlng, { draggable: true }).addTo(map);
@@ -455,7 +471,7 @@
             setLocation(latlng.lat, latlng.lng);
         }
 
-        // Når brukeren klikker på kartet, plasser markør og oppdater skjult input
+        // Nï¿½r brukeren klikker pï¿½ kartet, plasser markï¿½r og oppdater skjult input
         map.on('click', function (e) {
             // Velg: punkt eller bygg linje
             if (typeof drawMode === 'string' && drawMode === 'line') {
@@ -478,6 +494,52 @@
                 placeOrMoveMarker(e.latlng);
             }
         });
+
+        // ---------------- Lagre hinder, etter innsending (localStorage) ----------------
+        const LS_KEY = 'persisted_obstacles_v1';
+
+        function loadSavedObstacles() {
+            try {
+                var raw = localStorage.getItem(LS_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (_) { return []; }
+        }
+
+        function saveAll(obstacles) {
+            try { localStorage.setItem(LS_KEY, JSON.stringify(obstacles)); } catch (_) { /* ignore */ }
+        }
+
+        function renderSavedObstacles() {
+            savedObstaclesLayer.clearLayers();
+            var obstacles = loadSavedObstacles();
+            obstacles.forEach(function (o) {
+                if (!o || typeof o.lat !== 'number' || typeof o.lng !== 'number') { return; }
+                var label = o.type || 'Obstacle';
+                var h = (o.height !== null && o.height !== undefined && o.height !== '') ? (o.height + ' m') : 'Not specified';
+                var w = (o.width !== null && o.width !== undefined && o.width !== '') ? (o.width + ' m') : 'Not specified';
+                var popupHtml = '<div style="min-width:180px">' +
+                    '<div><strong>Type:</strong> ' + label + '</div>' +
+                    '<div><strong>Height:</strong> ' + h + '</div>' +
+                    '<div><strong>Width:</strong> ' + w + '</div>' +
+                    '</div>';
+                var cm = L.circleMarker([o.lat, o.lng], {
+                    radius: 8,
+                    color: '#b91c1c',
+                    weight: 2,
+                    fillColor: '#dc2626',
+                    fillOpacity: 0.8
+                });
+                cm.bindPopup(popupHtml);
+                var tooltipText = label + ' - H:' + h;
+                if (o.width !== null && o.width !== undefined && o.width !== '') {
+                    tooltipText += ' - W:' + w;
+                }
+                cm.bindTooltip(tooltipText, { sticky: true });
+                cm.addTo(savedObstaclesLayer);
+            });
+        }
+
+        renderSavedObstacles();
 
         // Lokaliserer posisjon
         L.control.locate().addTo(map);
@@ -528,7 +590,7 @@
                 });
                 L.DomEvent.on(btnClear, 'click', function(e){
                     L.DomEvent.preventDefault(e);
-                    // Slett både punkt og linje
+                    // Slett bï¿½de punkt og linje
                     if (marker) { map.removeLayer(marker); marker = null; }
                     if (polyline) { map.removeLayer(polyline); polyline = null; }
                     if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
@@ -539,7 +601,7 @@
                     lineLocked = false;
                 });
 
-                // Hindrer at klikk på kontrollen bobler til kartet
+                // Hindrer at klikk pï¿½ kontrollen bobler til kartet
                 L.DomEvent.disableClickPropagation(container);
                 L.DomEvent.disableScrollPropagation(container);
 
@@ -562,7 +624,7 @@
                 if (hint) hint.textContent = 'Click the map to drop a pin.';
                 lineLocked = false;
             } else {
-                // Fjern punkt-markør
+                // Fjern punkt-markï¿½r
                 if (marker) { map.removeLayer(marker); marker = null; }
                 hidden.value = '';
                 if (hint) hint.textContent = 'Linear mode: click to add points.';
@@ -572,7 +634,7 @@
         if (typeof modePoint !== 'undefined' && modePoint) modePoint.addEventListener('change', function(){ if (this.checked) setMode('point'); });
         if (typeof modeLine !== 'undefined' && modeLine) modeLine.addEventListener('change', function(){ if (this.checked) setMode('line'); });
         if (typeof clearBtn !== 'undefined' && clearBtn) clearBtn.addEventListener('click', function(){
-            // Slett både punkt og linje
+            // Slett bï¿½de punkt og linje
             if (marker) { map.removeLayer(marker); marker = null; }
             if (polyline) { map.removeLayer(polyline); polyline = null; }
             if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
@@ -674,13 +736,20 @@
             }
 
             function setUnit(unit) {
-                if (unit === currentUnit) return;
-                // Convert the displayed value to the new unit while keeping the same real height
-                currentUnit = unit;
                 unitText.textContent = unit === 'm' ? 'Meters' : 'Feet';
                 if (valueUnitText) {
                     valueUnitText.textContent = unit === 'm' ? 'meters' : 'feet';
                 }
+                if (displayInput) {
+                    displayInput.placeholder = unit === 'm' ? 'e.g., 2.5' : 'e.g., 8.2';
+                }
+                if (unit === currentUnit) {
+                    syncDisplayFromHidden();
+                    updateValidationMessage();
+                    return;
+                }
+                // Convert the displayed value to the new unit while keeping the same real height
+                currentUnit = unit;
                 if (unit === 'm') {
                     displayInput.min = minMeters;
                     displayInput.max = maxMeters;
@@ -698,7 +767,7 @@
             displayInput.min = minMeters;
             displayInput.max = maxMeters;
             displayInput.step = 0.1;
-            syncDisplayFromHidden();
+            setUnit(unitToggle.checked ? 'ft' : 'm');
 
             // Events
             displayInput.addEventListener('input', function(){
@@ -715,6 +784,30 @@
                 form.addEventListener('submit', function () {
                     // Update hidden from display right before submit
                     updateHiddenFromDisplay();
+                    try {
+                        // Capture current obstacle details so they persist across refresh
+                        var nameEl = document.getElementById('ObstacleName');
+                        var widthEl = document.getElementById('ObstacleWidthDisplay');
+                        var locRaw = hidden.value ? JSON.parse(hidden.value) : null;
+                        var lat = null, lng = null;
+                        if (locRaw && Array.isArray(locRaw.coordinates) && locRaw.coordinates.length === 2) {
+                            lng = Number(locRaw.coordinates[0]);
+                            lat = Number(locRaw.coordinates[1]);
+                        }
+                        if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
+                            var obstacles = loadSavedObstacles();
+                            obstacles.push({
+                                id: Date.now(),
+                                type: nameEl ? nameEl.value : 'Obstacle',
+                                height: hiddenMeters && hiddenMeters.value !== '' ? Number(hiddenMeters.value) : null,
+                                width: widthEl && widthEl.value !== '' ? Number(widthEl.value) : null,
+                                lat: lat,
+                                lng: lng
+                            });
+                            saveAll(obstacles);
+                            renderSavedObstacles();
+                        }
+                    } catch (_) { /* ignore */ }
                 });
             }
 
