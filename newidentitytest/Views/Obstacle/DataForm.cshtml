@@ -345,19 +345,35 @@
         })();
         // ----- End obstacle type info toggle -----
 
-        // Starter kartet og setter standardvisning (Bergen)
-        var map = L.map('map').setView([60.39, 5.32], 13);
+        // Starter kartet og sentrerer f�rst p� Kvadraturen i Kristiansand
+        const map = L.map('map').setView([58.1467, 7.9956], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '� OpenStreetMap contributors',
             maxZoom: 16
         }).addTo(map);
 
-        map.locate({ setView: true, maxZoom: 16 });
+        map.locate({ setView: true, maxZoom: 15 });
+
+        map.on('locationfound', function (e) {
+            L.circleMarker(e.latlng, {
+                radius: 8,
+                fillColor: '#007bff',
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(map);
+        });
+
+        map.on('locationerror', function () {
+            alert('Kunne ikke hente posisjonen din.');
+        });
 
         // Holder referanse til mark�ren + skjult input
         var marker = null;
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
+        var savedObstaclesLayer = L.layerGroup().addTo(map); // Lag for vedvarende (lagrede) hinder
         var formSection = document.getElementById('formSection');
         var mapWrapper = document.getElementById('mapWrapper');
         var appBody = document.body;
@@ -462,6 +478,52 @@
                 placeOrMoveMarker(e.latlng);
             }
         });
+
+        // ---------------- Lagre hinder, etter innsending (localStorage) ----------------
+        const LS_KEY = 'persisted_obstacles_v1';
+
+        function loadSavedObstacles() {
+            try {
+                var raw = localStorage.getItem(LS_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (_) { return []; }
+        }
+
+        function saveAll(obstacles) {
+            try { localStorage.setItem(LS_KEY, JSON.stringify(obstacles)); } catch (_) { /* ignore */ }
+        }
+
+        function renderSavedObstacles() {
+            savedObstaclesLayer.clearLayers();
+            var obstacles = loadSavedObstacles();
+            obstacles.forEach(function (o) {
+                if (!o || typeof o.lat !== 'number' || typeof o.lng !== 'number') { return; }
+                var label = o.type || 'Obstacle';
+                var h = (o.height !== null && o.height !== undefined && o.height !== '') ? (o.height + ' m') : 'Not specified';
+                var w = (o.width !== null && o.width !== undefined && o.width !== '') ? (o.width + ' m') : 'Not specified';
+                var popupHtml = '<div style="min-width:180px">' +
+                    '<div><strong>Type:</strong> ' + label + '</div>' +
+                    '<div><strong>Height:</strong> ' + h + '</div>' +
+                    '<div><strong>Width:</strong> ' + w + '</div>' +
+                    '</div>';
+                var cm = L.circleMarker([o.lat, o.lng], {
+                    radius: 8,
+                    color: '#b91c1c',
+                    weight: 2,
+                    fillColor: '#dc2626',
+                    fillOpacity: 0.8
+                });
+                cm.bindPopup(popupHtml);
+                var tooltipText = label + ' - H:' + h;
+                if (o.width !== null && o.width !== undefined && o.width !== '') {
+                    tooltipText += ' - W:' + w;
+                }
+                cm.bindTooltip(tooltipText, { sticky: true });
+                cm.addTo(savedObstaclesLayer);
+            });
+        }
+
+        renderSavedObstacles();
 
         // Lokaliserer posisjon
         L.control.locate().addTo(map);
@@ -658,13 +720,20 @@
             }
 
             function setUnit(unit) {
-                if (unit === currentUnit) return;
-                // Convert the displayed value to the new unit while keeping the same real height
-                currentUnit = unit;
                 unitText.textContent = unit === 'm' ? 'Meters' : 'Feet';
                 if (valueUnitText) {
                     valueUnitText.textContent = unit === 'm' ? 'meters' : 'feet';
                 }
+                if (displayInput) {
+                    displayInput.placeholder = unit === 'm' ? 'e.g., 2.5' : 'e.g., 8.2';
+                }
+                if (unit === currentUnit) {
+                    syncDisplayFromHidden();
+                    updateValidationMessage();
+                    return;
+                }
+                // Convert the displayed value to the new unit while keeping the same real height
+                currentUnit = unit;
                 if (unit === 'm') {
                     displayInput.min = minMeters;
                     displayInput.max = maxMeters;
@@ -682,7 +751,7 @@
             displayInput.min = minMeters;
             displayInput.max = maxMeters;
             displayInput.step = 0.1;
-            syncDisplayFromHidden();
+            setUnit(unitToggle.checked ? 'ft' : 'm');
 
             // Events
             displayInput.addEventListener('input', function(){
@@ -699,6 +768,30 @@
                 form.addEventListener('submit', function () {
                     // Update hidden from display right before submit
                     updateHiddenFromDisplay();
+                    try {
+                        // Capture current obstacle details so they persist across refresh
+                        var nameEl = document.getElementById('ObstacleName');
+                        var widthEl = document.getElementById('ObstacleWidthDisplay');
+                        var locRaw = hidden.value ? JSON.parse(hidden.value) : null;
+                        var lat = null, lng = null;
+                        if (locRaw && Array.isArray(locRaw.coordinates) && locRaw.coordinates.length === 2) {
+                            lng = Number(locRaw.coordinates[0]);
+                            lat = Number(locRaw.coordinates[1]);
+                        }
+                        if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
+                            var obstacles = loadSavedObstacles();
+                            obstacles.push({
+                                id: Date.now(),
+                                type: nameEl ? nameEl.value : 'Obstacle',
+                                height: hiddenMeters && hiddenMeters.value !== '' ? Number(hiddenMeters.value) : null,
+                                width: widthEl && widthEl.value !== '' ? Number(widthEl.value) : null,
+                                lat: lat,
+                                lng: lng
+                            });
+                            saveAll(obstacles);
+                            renderSavedObstacles();
+                        }
+                    } catch (_) { /* ignore */ }
                 });
             }
 
