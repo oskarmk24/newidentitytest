@@ -137,7 +137,6 @@
                         </div>
                     </div>
                     <input asp-for="ObstacleType" type="hidden" id="ObstacleType" />
-                    <input asp-for="ObstacleName" type="hidden" id="ObstacleName" />
                     <div id="ObstacleTypeOptions" class="flex flex-col gap-3">
                         <div class="grid gap-3 sm:grid-cols-2">
                             <button type="button" class="obstacle-type-button" data-obstacle-type="Punkt" aria-pressed="false">
@@ -269,9 +268,8 @@
         (function () {
             var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-obstacle-type]'));
             var hiddenType = document.getElementById('ObstacleType');
-            var hiddenName = document.getElementById('ObstacleName');
 
-            if (!buttons.length || !hiddenType || !hiddenName) {
+            if (!buttons.length || !hiddenType) {
                 return;
             }
 
@@ -770,7 +768,7 @@
                     updateHiddenFromDisplay();
                     try {
                         // Capture current obstacle details so they persist across refresh
-                        var nameEl = document.getElementById('ObstacleName');
+                        var typeEl = document.getElementById('ObstacleType');
                         var widthEl = document.getElementById('ObstacleWidthDisplay');
                         var locRaw = hidden.value ? JSON.parse(hidden.value) : null;
                         var lat = null, lng = null;
@@ -782,7 +780,7 @@
                             var obstacles = loadSavedObstacles();
                             obstacles.push({
                                 id: Date.now(),
-                                type: nameEl ? nameEl.value : 'Obstacle',
+                                type: typeEl ? typeEl.value : 'Obstacle',
                                 height: hiddenMeters && hiddenMeters.value !== '' ? Number(hiddenMeters.value) : null,
                                 width: widthEl && widthEl.value !== '' ? Number(widthEl.value) : null,
                                 lat: lat,

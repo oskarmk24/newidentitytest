@@ -58,11 +58,6 @@ namespace newidentitytest.Controllers
 
             try
             {
-                var obstacleName = string.IsNullOrWhiteSpace(obstacleData.ObstacleName)
-                    ? obstacleData.ObstacleType
-                    : obstacleData.ObstacleName;
-
-                obstacleData.ObstacleName = obstacleName;
 
                 var report = new Report
                 {
