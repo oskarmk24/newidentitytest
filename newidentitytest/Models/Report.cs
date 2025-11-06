@@ -10,10 +10,6 @@ namespace newidentitytest.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(200)]
-        public string ObstacleName { get; set; } = string.Empty;
-
         public int? ObstacleHeight { get; set; }
 
         [Column(TypeName = "text")]

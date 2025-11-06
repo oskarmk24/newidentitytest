@@ -66,7 +66,6 @@ namespace newidentitytest.Controllers
 
                 var report = new Report
                 {
-                    ObstacleName = obstacleName,
                     ObstacleHeight = Convert.ToInt32(Math.Round(obstacleData.ObstacleHeight)),
                     ObstacleDescription = obstacleData.ObstacleDescription,
                     ObstacleLocation = obstacleData.ObstacleLocation,

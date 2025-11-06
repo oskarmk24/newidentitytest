@@ -65,10 +65,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
             entity.HasKey(r => r.Id);
 
-            entity.Property(r => r.ObstacleName)
-                  .IsRequired()
-                  .HasMaxLength(200);
-
             entity.Property(r => r.ObstacleHeight);
 
             entity.Property(r => r.ObstacleDescription)
