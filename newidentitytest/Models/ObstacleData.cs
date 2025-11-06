@@ -8,12 +8,6 @@ namespace newidentitytest.Models
     /// </summary>
     public class ObstacleData
     {
-        /// <summary>
-        /// Navnet på hinderet.
-        /// Må fylles ut og kan være maks 100 tegn.
-        /// </summary>
-        [MaxLength(100)]
-        public string ObstacleName { get; set; }
 
         /// <summary>
         /// Forhåndsdefinert type for hinderet (valgt via knapper).
