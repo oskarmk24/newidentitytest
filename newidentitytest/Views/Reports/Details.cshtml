@@ -15,7 +15,7 @@
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <dt class="text-sm text-gray-600">Obstacle Type</dt>
-        <dd class="mt-1">@(!string.IsNullOrWhiteSpace(Model.Report.ObstacleType) ? Model.Report.ObstacleType : Model.Report.ObstacleName)</dd>
+        <dd class="mt-1">@(Model.Report.ObstacleType ?? "-")</dd>
       </div>
       <div>
         <dt class="text-sm text-gray-600">Height</dt>
@@ -66,13 +66,28 @@
       <script>
         // Try to parse the stored GeoJSON-like string and render a Leaflet map
         try {
-          var geo = JSON.parse(@Html.Raw(Json.Serialize(Model.Report.ObstacleLocation)));
-          var lng = geo.coordinates[0];
-          var lat = geo.coordinates[1];
-          var map = L.map('map').setView([lat, lng], 13);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-          L.marker([lat, lng]).addTo(map);
-        } catch(e) { console.warn('Could not parse location JSON', e); }
+          // ObstacleLocation is already a JSON string, so we need to handle it correctly
+          var locationStr = @Html.Raw(Json.Serialize(Model.Report.ObstacleLocation));
+          var geo = typeof locationStr === 'string' ? JSON.parse(locationStr) : locationStr;
+          
+          // Handle both Point and LineString types
+          if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates)) {
+            var lng = geo.coordinates[0];
+            var lat = geo.coordinates[1];
+            var map = L.map('map').setView([lat, lng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+            L.marker([lat, lng]).addTo(map);
+          } else if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates)) {
+            var latlngs = geo.coordinates.map(function(c){ return [c[1], c[0]]; });
+            var map = L.map('map');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+            var pl = L.polyline(latlngs, { color: 'red', weight: 4, opacity: 1 }).addTo(map);
+            map.fitBounds(pl.getBounds(), { padding: [20, 20] });
+          }
+        } catch(e) { 
+          console.warn('Could not parse location JSON', e); 
+          console.log('Location string was:', @Html.Raw(Json.Serialize(Model.Report.ObstacleLocation)));
+        }
       </script>
     }
 

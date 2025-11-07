@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
 using newidentitytest.Models;
+using newidentitytest.Data;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace newidentitytest.Controllers
 {
@@ -13,19 +14,20 @@ namespace newidentitytest.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly string connectionString;
+        private readonly ApplicationDbContext _context;
 
         /// <summary>
-        /// Henter connection string fra konfigurasjonen (appsettings.json).
+        /// Injects ApplicationDbContext for database operations.
         /// </summary>
-        public HomeController(IConfiguration config)
+        public HomeController(ApplicationDbContext context, ILogger<HomeController> logger)
         {
-            connectionString = config.GetConnectionString("DefaultConnection");
+            _context = context;
+            _logger = logger;
         }
 
         /// <summary>
-        /// Tester om vi klarer � koble til databasen. 
-        /// Viser en melding p� forsiden om det gikk bra eller ikke.
+        /// Tester om vi klarer å koble til databasen. 
+        /// Viser en melding på forsiden om det gikk bra eller ikke.
         /// </summary>
         
         //Krever at brukeren er autentisert for å se siden.
@@ -43,16 +45,23 @@ namespace newidentitytest.Controllers
 
             try
             {
-                // Pr�ver � �pne en kobling til databasen
-                await using var conn = new MySqlConnection(connectionString);
-                await conn.OpenAsync();
-
-                // Hvis det g�r bra vises en suksessmelding
-                return View("Index", successMessage);
+                // Test database connection using EF Core
+                bool canConnect = await _context.Database.CanConnectAsync();
+                
+                if (canConnect)
+                {
+                    // Hvis det går bra vises en suksessmelding
+                    return View("Index", successMessage);
+                }
+                else
+                {
+                    return View("Index", errorMessage + " Database is not available.");
+                }
             }
             catch (Exception ex)
             {
-                // Hvis noe g�r galt, vis en feilmelding
+                // Hvis noe går galt, vis en feilmelding
+                _logger.LogError(ex, "Database connection test failed");
                 return View("Index", errorMessage + " " + ex.Message);
             }
         }
@@ -66,7 +75,7 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Viser feilsiden med informasjon om RequestId (nyttig for feils�king).
+        /// Viser feilsiden med informasjon om RequestId (nyttig for feilsøking).
         /// </summary>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

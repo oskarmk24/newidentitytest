@@ -36,7 +36,7 @@
                         </td>
                         <td class="px-4 py-3">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
                         <td class="px-4 py-3">@r.Sender</td>
-                        <td class="px-4 py-3">@(!string.IsNullOrWhiteSpace(r.ObstacleType) ? r.ObstacleType : r.ObstacleName)</td>
+                        <td class="px-4 py-3">@(r.ObstacleType ?? "-")</td>
                         <td class="px-4 py-3">
                             @{
                                 if (!string.IsNullOrWhiteSpace(r.ObstacleLocation))
