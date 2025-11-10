@@ -21,23 +21,50 @@ namespace newidentitytest.Controllers
 
         // GET /Reports
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortBy = "CreatedAt", string sortOrder = "desc", string search = "")
         {
-            // Build a simple list view model by joining reports with Identity users
-            // - Left join (DefaultIfEmpty) so reports without a user still show
-            // - Newest first
-            var items = await (from r in _db.Reports
-                               join u in _db.Users on r.UserId equals u.Id into gj
-                               from u in gj.DefaultIfEmpty()
-                               orderby r.CreatedAt descending
-                               select new ReportListItem
-                               {
-                                   Id = r.Id,
-                                   CreatedAt = r.CreatedAt,
-                                   Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
-                                   ObstacleType = r.ObstacleType,
-                                   ObstacleLocation = r.ObstacleLocation
-                               }).ToListAsync();
+            // Build query
+            var query = from r in _db.Reports
+                        join u in _db.Users on r.UserId equals u.Id into gj
+                        from u in gj.DefaultIfEmpty()
+                        select new ReportListItem
+                        {
+                            Id = r.Id,
+                            CreatedAt = r.CreatedAt,
+                            Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
+                            ObstacleType = r.ObstacleType,
+                            ObstacleLocation = r.ObstacleLocation
+                        };
+
+            // Apply search filter if provided
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLower();
+                query = query.Where(r => 
+                    r.Id.ToString().Contains(searchLower) ||
+                    r.Sender.ToLower().Contains(searchLower) ||
+                    (r.ObstacleType != null && r.ObstacleType.ToLower().Contains(searchLower)) ||
+                    r.CreatedAt.ToString("MMM dd, yyyy").ToLower().Contains(searchLower)
+                );
+            }
+
+            // Apply sorting
+            query = sortBy.ToLower() switch
+            {
+                "id" => sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id),
+                "createdat" => sortOrder == "asc" ? query.OrderBy(r => r.CreatedAt) : query.OrderByDescending(r => r.CreatedAt),
+                "sender" => sortOrder == "asc" ? query.OrderBy(r => r.Sender) : query.OrderByDescending(r => r.Sender),
+                "obstacletype" => sortOrder == "asc" ? query.OrderBy(r => r.ObstacleType ?? "") : query.OrderByDescending(r => r.ObstacleType ?? ""),
+                _ => query.OrderByDescending(r => r.CreatedAt)
+            };
+
+            var items = await query.ToListAsync();
+            
+            // Pass sorting info to view
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
+            ViewBag.Search = search;
+            
             return View(items);
         }
 
