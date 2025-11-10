@@ -84,5 +84,23 @@ namespace newidentitytest.Controllers
             // Viser oversiktssiden med dataene etter at de er lagret
             return View("Overview", obstacleData);
         }
+
+        [HttpGet]
+        [Route("/api/obstacles")]
+        public async Task<IActionResult> GetObstaclesForMap()
+        {
+            var reports = await _dbContext.Reports
+                .Where(r => !string.IsNullOrEmpty(r.ObstacleLocation))
+                .Select(r => new
+                {
+                    Id = r.Id,
+                    Type = r.ObstacleType ?? "Unknown",
+                    Height = r.ObstacleHeight,
+                    Location = r.ObstacleLocation
+                })
+                .ToListAsync();
+            
+            return Ok(reports);
+        }
     }
 }

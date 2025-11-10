@@ -176,20 +176,8 @@
 </section>
 
 
-<!-- Kartseksjon for å velge posisjon -->
-<section class="mx-auto max-w-2xl pt-6">
-    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Map</h1>
-        </header>
 
-        <!-- Selve kartet -->
-        <div id="map"></div>
 
-        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
-        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Velg Point eller Linear. Klikk i kartet for � registrere.</div>
-    </div>
-</section>
 
 <!-- Størrelse på kartet -->
 <style>
@@ -601,20 +589,59 @@
             }).bindTooltip(label, { permanent: false }).addTo(savedObstaclesLayer);
         }
 
-        // Viser alle lagrede hinder på kartet (både punkter og linjer)
-        function renderSavedObstacles() {
+        // Load obstacles from database
+        async function loadObstaclesFromDatabase() {
+            try {
+                const response = await fetch('/api/obstacles');
+                if (!response.ok) return [];
+                const reports = await response.json();
+                return reports.map(r => {
+                    try {
+                        const location = typeof r.location === 'string' ? JSON.parse(r.location) : r.location;
+                        if (location.type === 'Point' && location.coordinates) {
+                            return {
+                                id: r.id,
+                                type: r.type,
+                                height: r.height,
+                                lat: location.coordinates[1],
+                                lng: location.coordinates[0]
+                            };
+                        } else if (location.type === 'LineString' && location.coordinates) {
+                            return {
+                                id: r.id,
+                                type: r.type,
+                                height: r.height,
+                                geometry: location
+                            };
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse location for report', r.id, e);
+                    }
+                    return null;
+                }).filter(o => o !== null);
+            } catch (e) {
+                console.error('Failed to load obstacles from database', e);
+                return [];
+            }
+        }
+
+        // Updated render function that loads from database
+        async function renderSavedObstacles() {
             savedObstaclesLayer.clearLayers();
             var zoom = map.getZoom();
             var scale = getScaleForZoom(zoom);
             
-            loadSavedObstacles().forEach(function (o) {
+            // Load from database instead of localStorage
+            const obstacles = await loadObstaclesFromDatabase();
+            
+            obstacles.forEach(function (o) {
                 if (!o) return;
                 
                 var label = o.type || 'Obstacle';
                 var h = formatValue(o.height);
-                var w = formatValue(o.width);
+                var w = formatValue(null); // Width not stored in database
                 
-                // Håndter linje-hinder
+                // Handle LineString obstacles
                 if (o.geometry && o.geometry.type === 'LineString' && o.geometry.coordinates) {
                     var latlngs = o.geometry.coordinates.map(function(c) { return [c[1], c[0]]; });
                     var lengthText = (function(len) {
@@ -626,6 +653,7 @@
                     polyline.bindTooltip(buildTooltip(label, h, w, lengthText), { sticky: true });
                     polyline.addTo(savedObstaclesLayer);
                     
+                    // Add start/end markers
                     if (latlngs.length > 0) {
                         L.circleMarker(latlngs[0], { 
                             radius: 5 * scale, 
@@ -645,7 +673,7 @@
                         }).bindTooltip('Slutt', { permanent: false }).addTo(savedObstaclesLayer);
                     }
                 }
-                // Håndter punkt-hinder
+                // Handle Point obstacles
                 else if (typeof o.lat === 'number' && typeof o.lng === 'number') {
                     var cm = L.circleMarker([o.lat, o.lng], {
                         radius: 8 * scale, color: '#b91c1c', weight: 2, fillColor: '#dc2626', fillOpacity: 0.8
@@ -657,6 +685,7 @@
             });
         }
 
+        // Update the initial call to be async
         renderSavedObstacles();
 
         // Lokaliserer posisjon
