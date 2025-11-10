@@ -69,8 +69,8 @@ namespace newidentitytest.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [EmailAddress]
-            public string Email { get; set; }
+            [Display(Name = "Username or Email")]
+            public string UsernameOrEmail { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -113,8 +113,20 @@ namespace newidentitytest.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // Explicit password check then sign-in so role claims are fetched and included in the cookie
-                var user = await _userManager.FindByEmailAsync(Input.Email);
+                // Try to find user by username or email
+                ApplicationUser user = null;
+                
+                // Check if input looks like an email (contains @)
+                if (Input.UsernameOrEmail.Contains("@"))
+                {
+                    user = await _userManager.FindByEmailAsync(Input.UsernameOrEmail);
+                }
+                else
+                {
+                    // Try to find by username
+                    user = await _userManager.FindByNameAsync(Input.UsernameOrEmail);
+                }
+
                 if (user != null)
                 {
                     var check = await _signInManager.CheckPasswordSignInAsync(user, Input.Password, lockoutOnFailure: false);

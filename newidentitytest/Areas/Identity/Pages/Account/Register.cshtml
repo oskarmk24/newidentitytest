@@ -23,11 +23,21 @@
             
             <div class="space-y-4">
                 <div>
+                    <label asp-for="Input.UserName" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input asp-for="Input.UserName" 
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
+                           placeholder="username" 
+                           autocomplete="username" 
+                           aria-required="true" />
+                    <span asp-validation-for="Input.UserName" class="text-red-600 text-sm"></span>
+                </div>
+                
+                <div>
                     <label asp-for="Input.Email" class="block text-sm font-medium text-gray-700">Email address</label>
                     <input asp-for="Input.Email" 
                            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
                            placeholder="name@example.com" 
-                           autocomplete="username" 
+                           autocomplete="email" 
                            aria-required="true" />
                     <span asp-validation-for="Input.Email" class="text-red-600 text-sm"></span>
                 </div>
