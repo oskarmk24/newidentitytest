@@ -42,11 +42,13 @@
 
                         string GetSortIcon(string column)
                         {
+                            // Use a single triangle everywhere; highlight direction for active column
                             if (sortBy.Equals(column, StringComparison.OrdinalIgnoreCase))
                             {
                                 return sortOrder == "asc" ? "▲" : "▼";
                             }
-                            return "↕";
+                            // Inactive columns show a default downward triangle to keep icons constant
+                            return "▼";
                         }
                     }
                     <th class="px-4 py-3">
