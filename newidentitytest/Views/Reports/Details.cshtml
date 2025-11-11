@@ -8,7 +8,7 @@
     <header>
       @* Page title and a short summary line with sender and date *@
       <h1 class="text-2xl font-semibold">Report @Model.Report.Id</h1>
-      <p class="text-gray-600">Submitted by @Model.Sender on @Model.Report.CreatedAt.ToString("MMM dd, yyyy")</p>
+      <p class="text-gray-600">Submitted by @Model.Sender on @Model.Report.CreatedAt.ToString("g")</p>
     </header>
 
     @* Definition list presents key/value pairs neatly *@
@@ -33,6 +33,10 @@
           @heightDisplay
         </dd>
       </div>
+      <div>
+        <dt class="text-sm text-gray-600">Reported At</dt>
+        <dd class="mt-1">@Model.Report.CreatedAt.ToString("g")</dd>
+      </div>
       <div class="sm:col-span-2">
         <dt class="text-sm text-gray-600">Description</dt>
         <dd class="mt-1">@Model.Report.ObstacleDescription</dd>
@@ -48,14 +52,45 @@
               try
               {
                   var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(Model.Report.ObstacleLocation);
-                  var coordinates = geo.GetProperty("coordinates");
-                  var lng = coordinates[0].GetDecimal();
-                  var lat = coordinates[1].GetDecimal();
-                  <text>Lat: @lat, Lng: @lng</text>
+                  if (geo.TryGetProperty("coordinates", out var coords) && coords.ValueKind == System.Text.Json.JsonValueKind.Array)
+                  {
+                      // Point: [lng, lat]
+                      if (coords.GetArrayLength() >= 2 &&
+                          coords[0].ValueKind == System.Text.Json.JsonValueKind.Number &&
+                          coords[1].ValueKind == System.Text.Json.JsonValueKind.Number)
+                      {
+                          var lng = coords[0].GetDouble();
+                          var lat = coords[1].GetDouble();
+                          <text>Lat: @lat, Lng: @lng</text>
+                      }
+                      // LineString: [[lng,lat], [lng,lat], ...]
+                      else if (coords.GetArrayLength() > 0 && coords[0].ValueKind == System.Text.Json.JsonValueKind.Array)
+                      {
+                          var parts = new List<string>();
+                          foreach (var c in coords.EnumerateArray())
+                          {
+                              if (c.ValueKind == System.Text.Json.JsonValueKind.Array && c.GetArrayLength() >= 2)
+                              {
+                                  var lng = c[0].GetDouble();
+                                  var lat = c[1].GetDouble();
+                                  parts.Add($"(Lat: {lat}, Lng: {lng})");
+                              }
+                          }
+                          <text>Coords: @string.Join(" → ", parts)</text>
+                      }
+                      else
+                      {
+                          <text>-</text>
+                      }
+                  }
+                  else
+                  {
+                      <text>-</text>
+                  }
               }
               catch
               {
-                  <text>@Model.Report.ObstacleLocation</text>
+                  <text>-</text>
               }
           }
         </p>
