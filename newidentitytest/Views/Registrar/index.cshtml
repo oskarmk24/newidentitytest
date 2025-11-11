@@ -2,55 +2,158 @@
 
 @{
     ViewData["Title"] = "Registrar Dashboard";
+    var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
+    var sortOrder = ViewBag.SortOrder as string ?? "desc";
+    var search = ViewBag.Search as string ?? "";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h1 class="display-4">Welcome, Registrar</h1>
-            <hr />
+<section class="container mx-auto">
+    <header class="flex items-center justify-between mb-4">
+        <div>
+            <h1 class="text-2xl font-semibold">Welcome, Registrar</h1>
+            <p class="text-gray-600">Incoming Reports (@Model.Count())</p>
         </div>
-    </div>
+        <form method="get" action="@Url.Action("Index")" class="flex items-center gap-2">
+            <input type="text" name="search" value="@search" placeholder="Search..."
+                   class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
+            <input type="hidden" name="sortBy" value="@sortBy" />
+            <input type="hidden" name="sortOrder" value="@sortOrder" />
+            <button type="submit" class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
+                Search
+            </button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a href="@Url.Action("Index", new { sortBy = sortBy, sortOrder = sortOrder })"
+                   class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Clear</a>
+            }
+        </form>
+    </header>
 
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Incoming Reports</h3>
-                </div>
-                <div class="card-body">
-                    @if (Model != null && Model.Any())
-                    {
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                    <th>Location</th>
-                                    <th>Reported At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            @foreach (var r in Model)
+    <div class="overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-left text-gray-600">
+                <tr>
+                    @{
+                        string GetSortUrl(string column)
+                        {
+                            var newSortOrder = (sortBy.Equals(column, StringComparison.OrdinalIgnoreCase) && sortOrder == "asc") ? "desc" : "asc";
+                            return Url.Action("Index", new { sortBy = column, sortOrder = newSortOrder, search = search });
+                        }
+
+                        string GetSortIcon(string column)
+                        {
+                            // Use a single triangle everywhere; highlight direction for active column
+                            if (sortBy.Equals(column, StringComparison.OrdinalIgnoreCase))
                             {
-                                <tr>
-                                    <td>@r.Id</td>
-                                    <td>@r.ObstacleType</td>
-                                    <td>@r.ObstacleDescription</td>
-                                    <td>@r.ObstacleLocation</td>
-                                    <td>@r.CreatedAt.ToString("g")</td>
-                                </tr>
+                                return sortOrder == "asc" ? "▲" : "▼";
                             }
-                            </tbody>
-                        </table>
+                            // Inactive columns show a default downward triangle to keep icons constant
+                            return "▼";
+                        }
                     }
-                    else
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("id")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            ID <span class="text-gray-600">@GetSortIcon("id")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("type")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Type <span class="text-gray-600">@GetSortIcon("type")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("description")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Description <span class="text-gray-600">@GetSortIcon("description")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("location")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Location <span class="text-gray-600">@GetSortIcon("location")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("createdat")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Reported At <span class="text-gray-600">@GetSortIcon("createdat")</span>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var r in Model)
                     {
-                        <p>No recent reports.</p>
+                        var href = Url.Action("Details", "Reports", new { id = r.Id });
+                        <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='@href'">
+                            <td class="px-4 py-3">@r.Id</td>
+                            <td class="px-4 py-3">@(r.ObstacleType ?? "-")</td>
+                            <td class="px-4 py-3">@(string.IsNullOrWhiteSpace(r.ObstacleDescription) ? "-" : r.ObstacleDescription)</td>
+                            <td class="px-4 py-3">
+                                @{
+                                    if (!string.IsNullOrWhiteSpace(r.ObstacleLocation))
+                                    {
+                                        try
+                                        {
+                                            var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(r.ObstacleLocation);
+                                            if (geo.TryGetProperty("coordinates", out var coords) && coords.ValueKind == System.Text.Json.JsonValueKind.Array)
+                                            {
+                                                // Point: [lng, lat]
+                                                if (coords.GetArrayLength() >= 2 && coords[0].ValueKind == System.Text.Json.JsonValueKind.Number && coords[1].ValueKind == System.Text.Json.JsonValueKind.Number)
+                                                {
+                                                    var lng = coords[0].GetDouble();
+                                                    var lat = coords[1].GetDouble();
+                                                    <text>Lat: @lat, Lng: @lng</text>
+                                                }
+                                                // LineString: [[lng,lat], [lng,lat], ...]
+                                                else if (coords.GetArrayLength() > 0 && coords[0].ValueKind == System.Text.Json.JsonValueKind.Array)
+                                                {
+                                                    var maxShow = 3;
+                                                    var shown = 0;
+                                                    var parts = new List<string>();
+                                                    foreach (var c in coords.EnumerateArray())
+                                                    {
+                                                        if (c.ValueKind == System.Text.Json.JsonValueKind.Array && c.GetArrayLength() >= 2)
+                                                        {
+                                                            var lng = c[0].GetDouble();
+                                                            var lat = c[1].GetDouble();
+                                                            parts.Add($"(Lat: {lat}, Lng: {lng})");
+                                                            shown++;
+                                                            if (shown >= maxShow) break;
+                                                        }
+                                                    }
+                                                    var extra = coords.GetArrayLength() - shown;
+                                                    <text>Coords: @string.Join(" → ", parts)@(extra > 0 ? $" … (+{extra} more)" : "")</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>-</text>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <text>-</text>
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            <text>-</text>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                }
+                            </td>
+                            <td class="px-4 py-3">@r.CreatedAt.ToString("g")</td>
+                        </tr>
                     }
-                </div>
-            </div>
-        </div>
+                }
+                else
+                {
+                    <tr><td class="px-4 py-3" colspan="5">No reports found.</td></tr>
+                }
+            </tbody>
+        </table>
     </div>
-</div>
+</section>
