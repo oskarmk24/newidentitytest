@@ -16,51 +16,31 @@ namespace newidentitytest.Controllers
 
 		// GET: /Registrar/Index
 		[HttpGet]
-		public async Task<IActionResult> Index(string sortBy = "CreatedAt", string sortOrder = "desc", string search = "")
+		public async Task<IActionResult> Index()
 		{
-			// Base query
-			var query = _db.Reports.AsQueryable();
-
-			// Search across key fields
-			if (!string.IsNullOrWhiteSpace(search))
+			// Get count for display purposes
+			var reportCount = await _db.Reports.CountAsync();
+			ViewBag.ReportCount = reportCount;
+			
+			// Pending reports count (placeholder: all reports are pending until approval/rejection system is implemented)
+			var pendingCount = await _db.Reports.CountAsync();
+			ViewBag.PendingReportsCount = pendingCount;
+			
+			// Check system status (database connectivity)
+			bool isSystemHealthy = false;
+			try
 			{
-				var s = search.ToLower();
-				query = query.Where(r =>
-					r.Id.ToString().Contains(search) ||
-					(r.ObstacleType != null && r.ObstacleType.ToLower().Contains(s)) ||
-					(r.ObstacleDescription != null && r.ObstacleDescription.ToLower().Contains(s)) ||
-					(r.ObstacleLocation != null && r.ObstacleLocation.ToLower().Contains(s))
-				);
+				isSystemHealthy = await _db.Database.CanConnectAsync();
 			}
-
-			// Sorting
-			switch ((sortBy ?? "").ToLower())
+			catch
 			{
-				case "id":
-					query = sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id);
-					break;
-				case "type":
-					query = sortOrder == "asc" ? query.OrderBy(r => r.ObstacleType ?? "") : query.OrderByDescending(r => r.ObstacleType ?? "");
-					break;
-				case "description":
-					query = sortOrder == "asc" ? query.OrderBy(r => r.ObstacleDescription ?? "") : query.OrderByDescending(r => r.ObstacleDescription ?? "");
-					break;
-				case "location":
-					query = sortOrder == "asc" ? query.OrderBy(r => r.ObstacleLocation ?? "") : query.OrderByDescending(r => r.ObstacleLocation ?? "");
-					break;
-				case "createdat":
-				default:
-					query = sortOrder == "asc" ? query.OrderBy(r => r.CreatedAt) : query.OrderByDescending(r => r.CreatedAt);
-					break;
+				isSystemHealthy = false;
 			}
-
-			var reports = await query.ToListAsync();
-
-			ViewBag.SortBy = sortBy;
-			ViewBag.SortOrder = sortOrder;
-			ViewBag.Search = search;
-
-			return View(reports);
+			
+			ViewBag.SystemStatus = isSystemHealthy ? "Active" : "Degraded";
+			ViewBag.SystemStatusColor = isSystemHealthy ? "green" : "red";
+			
+			return View();
 		}
 	}
 }

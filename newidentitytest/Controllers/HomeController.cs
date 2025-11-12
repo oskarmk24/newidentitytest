@@ -34,7 +34,13 @@ namespace newidentitytest.Controllers
         [Authorize]
         public async Task<IActionResult> Index()
         {
-            // rett brukere mot kartet først for å registrere hinder.
+            // Redirect registrars to their landing page
+            if (User.IsInRole("Registrar"))
+            {
+                return RedirectToAction("Index", "Registrar");
+            }
+            
+            // Redirect non-admin users to the obstacle form
             if (!User.IsInRole("Admin"))
             {
                 return RedirectToAction("DataForm", "Obstacle");
