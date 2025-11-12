@@ -26,5 +26,16 @@ namespace newidentitytest.Models
 
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; }
+
+        // Status field: Pending, Approved, Rejected
+        [MaxLength(50)]
+        public string Status { get; set; } = "Pending";
+
+        // Reason for rejection (only used when Status = "Rejected")
+        [Column(TypeName = "text")]
+        public string? RejectionReason { get; set; }
+
+        // Timestamp when status was last updated
+        public DateTime? ProcessedAt { get; set; }
     }
 }
