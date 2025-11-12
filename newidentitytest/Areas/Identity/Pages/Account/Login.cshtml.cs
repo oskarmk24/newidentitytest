@@ -22,11 +22,13 @@ namespace newidentitytest.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -67,8 +69,8 @@ namespace newidentitytest.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [EmailAddress]
-            public string Email { get; set; }
+            [Display(Name = "Username or Email")]
+            public string UsernameOrEmail { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -111,28 +113,64 @@ namespace newidentitytest.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
+                // Try to find user by username or email
+                ApplicationUser user = null;
+                
+                // Check if input looks like an email (contains @)
+                if (Input.UsernameOrEmail.Contains("@"))
                 {
-                    _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
-                }
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
-                }
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToPage("./Lockout");
+                    user = await _userManager.FindByEmailAsync(Input.UsernameOrEmail);
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
+                    // Try to find by username
+                    user = await _userManager.FindByNameAsync(Input.UsernameOrEmail);
                 }
+
+                if (user != null)
+                {
+                    var check = await _signInManager.CheckPasswordSignInAsync(user, Input.Password, lockoutOnFailure: false);
+                    if (check.Succeeded)
+                    {
+                        // Sign in the user explicitly so the principal built includes role claims
+                        await _signInManager.SignInAsync(user, Input.RememberMe);
+                        _logger.LogInformation("User logged in.");
+
+                        var roles = await _userManager.GetRolesAsync(user);
+
+                        // Admin -> Home/Index
+                        if (roles.Contains("Admin"))
+                        {
+                            return LocalRedirect(Url.Content("~/Home/Index"));
+                        }
+
+                        // Pilot -> Obstacle/DataForm
+                        if (roles.Contains("Pilot"))
+                        {
+                            return LocalRedirect(Url.Content("~/Obstacle/DataForm"));
+                        }
+
+                        // Registrar -> Registrar/Index
+                        if (roles.Contains("Registrar"))
+                        {
+                            return LocalRedirect(Url.Content("~/Registrar/Index"));
+                        }
+
+                        return LocalRedirect(returnUrl);
+                    }
+                    if (check.IsLockedOut)
+                    {
+                        _logger.LogWarning("User account locked out.");
+                        return RedirectToPage("./Lockout");
+                    }
+                    if (check.RequiresTwoFactor)
+                    {
+                        return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
+                    }
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
             }
 
             // If we got this far, something failed, redisplay form

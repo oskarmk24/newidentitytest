@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Register Obstacle";
+    var isRegistrar = User.IsInRole("Registrar");
 }
 
 <!-- pilot meny (top-right, only on map) -->
@@ -30,158 +31,168 @@
 <section id="mapWrapper" class="mx-auto max-w-2xl map-fullscreen">
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 map-card">
         <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Map</h1>
+            <h1 class="text-2xl font-semibold">@(isRegistrar ? "Obstacle Reports Map" : "Map")</h1>
         </header>
 
         <!-- Selve kartet -->
         <div id="map"></div>
 
         <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
-        <div id="coordsHint" class="mt-2 text-sm text-gray-600">Click the map to drop a pin.</div>
+        <div id="coordsHint" class="mt-2 text-sm text-gray-600">
+            @if (isRegistrar)
+            {
+                <text>View all obstacle reports on the map (read-only)</text>
+            }
+            else
+            {
+                <text>Click the map to drop a pin.</text>
+            }
+        </div>
     </div>
 </section>
 
-<section class="mx-auto max-w-2xl pt-6" id="formSection" style="display:none;">
-    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Obstacle Registration Form</h1>
-            <p class="text-gray-600 mt-1">Please register an obstacle</p>
-        </header>
+@if (!isRegistrar)
+{
+    <section class="mx-auto max-w-2xl pt-6" id="formSection" style="display:none;">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+            <header class="mb-6">
+                <h1 class="text-2xl font-semibold">Obstacle Registration Form</h1>
+                <p class="text-gray-600 mt-1">Please register an obstacle</p>
+            </header>
 
-        <!-- Skjema for å registrere hinder -->
-        <form asp-action="DataForm" method="post" class="space-y-5">
-            <!-- Viser feilmeldinger hvis valideringen feiler -->
-            <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
+            <!-- Skjema for å registrere hinder -->
+            <form asp-action="DataForm" method="post" class="space-y-5">
+                <!-- Viser feilmeldinger hvis valideringen feiler -->
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
 
-            <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket p� kartet -->
-            <!-- Change input to visually hidden text so jQuery Validate doesn't ignore it -->
-            <input type="text" asp-for="ObstacleLocation" id="ObstacleLocation"
-                   style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
-                   aria-hidden="true" tabindex="-1" />
-            <span asp-validation-for="ObstacleLocation" class="text-sm text-red-600"></span>
+                <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket p� kartet -->
+                <!-- Change input to visually hidden text so jQuery Validate doesn't ignore it -->
+                <input type="text" asp-for="ObstacleLocation" id="ObstacleLocation"
+                       style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
+                       aria-hidden="true" tabindex="-1" />
+                <span asp-validation-for="ObstacleLocation" class="text-sm text-red-600"></span>
 
-            <div class="grid gap-5 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                    <div class="flex items-center justify-between gap-3 mb-1">
-                        <label class="block text-sm font-medium text-gray-800">Velg hinderkategori</label>
-                        <button type="button" id="ObstacleTypeInfoToggle" class="material-symbols-outlined text-gray-500 hover:text-gray-700 transition-colors"
-                                aria-expanded="false" aria-controls="ObstacleTypeInfoPanel" title="Vis informasjon om hinderkategorier">
-                            info
-                        </button>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-3">Klikk på informasjonsikonet for å se eksempler knyttet til hver kategori.</p>
-                    <div id="ObstacleTypeInfoPanel" class="hidden mt-3 rounded-xl border border-gray-200 bg-slate-50 p-4 text-sm text-gray-700 shadow-sm">
-                        <p class="font-semibold text-gray-800 mb-3">Eksempler per kategori</p>
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Punkt</h3>
-                                <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som har et bestemt punkt på kartet</p>
-                                <ul class="mt-1 list-disc list-inside space-y-1">
-                                    <li>Mast</li>
-                                    <li>Bygning</li>
-                                    <li>Tårn</li>
-                                    <li>Kran</li>
-                                    <li>Monument / Flaggstang</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Linje</h3>
-                                <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som strekker seg mellom to punkter</p>
-                                <ul class="mt-1 list-disc list-inside space-y-1">
-                                    <li>Luftspenn</li>
-                                    <li>Kontaktledning</li>
-                                    <li>Gjerde / Bru / Demning</li>
-                                    <li>Kabel</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Flate</h3>
-                                <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som dekker et større område</p>
-                                <ul class="mt-1 list-disc list-inside space-y-1">
-                                    <li>Trafostasjon</li>
-                                    <li>Bygningskompleks</li>
-                                    <li>Kraftverk / Raffineri</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Annet</h3>
-                                <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som ikke passer i de andre kategoriene</p>
-                                <ul class="mt-1 list-disc list-inside space-y-1">
-                                    <li>Forankret ballong</li>
-                                    <li>Monument</li>
-                                    <li>Midlertidige konstruksjoner</li>
-                                    <li>Ukjent type</li>
-                                </ul>
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <div class="flex items-center justify-between gap-3 mb-1">
+                            <label class="block text-sm font-medium text-gray-800">Velg hinderkategori</label>
+                            <button type="button" id="ObstacleTypeInfoToggle" class="material-symbols-outlined text-gray-500 hover:text-gray-700 transition-colors"
+                                    aria-expanded="false" aria-controls="ObstacleTypeInfoPanel" title="Vis informasjon om hinderkategorier">
+                                info
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Klikk på informasjonsikonet for å se eksempler knyttet til hver kategori.</p>
+                        <div id="ObstacleTypeInfoPanel" class="hidden mt-3 rounded-xl border border-gray-200 bg-slate-50 p-4 text-sm text-gray-700 shadow-sm">
+                            <p class="font-semibold text-gray-800 mb-3">Eksempler per kategori</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Punkt</h3>
+                                    <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som har et bestemt punkt på kartet</p>
+                                    <ul class="mt-1 list-disc list-inside space-y-1">
+                                        <li>Mast</li>
+                                        <li>Bygning</li>
+                                        <li>Tårn</li>
+                                        <li>Kran</li>
+                                        <li>Monument / Flaggstang</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Linje</h3>
+                                    <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som strekker seg mellom to punkter</p>
+                                    <ul class="mt-1 list-disc list-inside space-y-1">
+                                        <li>Luftspenn</li>
+                                        <li>Kontaktledning</li>
+                                        <li>Gjerde / Bru / Demning</li>
+                                        <li>Kabel</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Flate</h3>
+                                    <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som dekker et større område</p>
+                                    <ul class="mt-1 list-disc list-inside space-y-1">
+                                        <li>Trafostasjon</li>
+                                        <li>Bygningskompleks</li>
+                                        <li>Kraftverk / Raffineri</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Annet</h3>
+                                    <p class="text-xs text-gray-600 mt-1 mb-2">Hindere som ikke passer i de andre kategoriene</p>
+                                    <ul class="mt-1 list-disc list-inside space-y-1">
+                                        <li>Forankret ballong</li>
+                                        <li>Monument</li>
+                                        <li>Midlertidige konstruksjoner</li>
+                                        <li>Ukjent type</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <input asp-for="ObstacleType" type="hidden" id="ObstacleType" />
-                    <div id="ObstacleTypeOptions" class="grid gap-3 sm:grid-cols-2">
-                        <button type="button" class="obstacle-type-button" data-obstacle-type="Punkt" aria-pressed="false">
-                            <span class="obstacle-type-label">Punkt</span>
-                        </button>
-                        <button type="button" class="obstacle-type-button" data-obstacle-type="Linje" aria-pressed="false">
-                            <span class="obstacle-type-label">Linje</span>
-                        </button>
-                        <button type="button" class="obstacle-type-button" data-obstacle-type="Flate" aria-pressed="false">
-                            <span class="obstacle-type-label">Flate</span>
-                        </button>
-                        <button type="button" class="obstacle-type-button" data-obstacle-type="Annet" aria-pressed="false">
-                            <span class="obstacle-type-label">Annet</span>
-                        </button>
-                    </div>
-                    <span asp-validation-for="ObstacleType" class="text-sm text-red-600"></span>
-                </div>
-
-                <!-- Høyde p+ hinder -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-800 mb-1">
-                        Obstacle Height (<span id="unitText">Meters</span>)
-                    </label>
-                    <!-- Hidden, model-bound input stores meters for server-side validation -->
-                    <input asp-for="ObstacleHeight" type="hidden" id="ObstacleHeight" />
-
-                    <!-- Visible slider controlling the height; value shown below -->
-                    <input id="ObstacleHeightDisplay" type="range" min="0" max="200" step="0.1"
-                           class="w-full accent-indigo-600"
-                           style="transform:scale(1.6);transform-origin:left center;width:calc(100% / 1.6)"
-                           aria-describedby="ObstacleHeightValue ObstacleHeightDisplayUnit" />
-                    <div class="mt-2 text-sm text-gray-600">
-                        <span id="ObstacleHeightValue">0.0</span> <span id="ObstacleHeightDisplayUnit">meters</span>
+                        <input asp-for="ObstacleType" type="hidden" id="ObstacleType" />
+                        <div id="ObstacleTypeOptions" class="grid gap-3 sm:grid-cols-2">
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Punkt" aria-pressed="false">
+                                <span class="obstacle-type-label">Punkt</span>
+                            </button>
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Linje" aria-pressed="false">
+                                <span class="obstacle-type-label">Linje</span>
+                            </button>
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Flate" aria-pressed="false">
+                                <span class="obstacle-type-label">Flate</span>
+                            </button>
+                            <button type="button" class="obstacle-type-button" data-obstacle-type="Annet" aria-pressed="false">
+                                <span class="obstacle-type-label">Annet</span>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ObstacleType" class="text-sm text-red-600"></span>
                     </div>
 
-                    <!-- Simple on/off switch for ft/m -->
-                    <div class="mt-1 flex items-center justify-start gap-2">
-                        <label class="switch" title="Toggle feet/meters">
-                            <input id="unitToggle" type="checkbox" aria-label="Toggle feet/meters">
-                            <span class="slider round"></span>
+                    <!-- Hyde p hinder -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-800 mb-1">
+                            Obstacle Height (<span id="unitText">Meters</span>)
                         </label>
-                        <div class="text-xs text-gray-600 select-none">ft / m</div>
+                        <!-- Hidden, model-bound input stores meters for server-side validation -->
+                        <input asp-for="ObstacleHeight" type="hidden" id="ObstacleHeight" />
+
+                        <!-- Visible slider controlling the height; value shown below -->
+                        <input id="ObstacleHeightDisplay" type="range" min="0" max="200" step="0.1"
+                               class="w-full accent-indigo-600" aria-describedby="ObstacleHeightValue ObstacleHeightDisplayUnit" />
+                        <div class="mt-2 text-sm text-gray-600">
+                            <span id="ObstacleHeightValue">0.0</span> <span id="ObstacleHeightDisplayUnit">meters</span>
+                        </div>
+
+                        <!-- Simple on/off switch for ft/m -->
+                        <div class="mt-1 flex items-center justify-start gap-2">
+                            <label class="switch" title="Toggle feet/meters">
+                                <input id="unitToggle" type="checkbox" aria-label="Toggle feet/meters">
+                                <span class="slider round"></span>
+                            </label>
+                            <div class="text-xs text-gray-600 select-none">ft / m</div>
+                        </div>
+
+                        <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
                     </div>
-
-                    <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
                 </div>
-            </div>
 
-            <!-- Beskrivelse av hinder -->
-            <div class="sm:col-span-2">
-                <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Description</label>
-                <textarea asp-for="ObstacleDescription" rows="4"
-                          class="block w-full rounded-lg border-2 border-gray-400 bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600 px-3 py-2 shadow-sm"
-                          placeholder="Describe the obstacle, materials, location, etc."></textarea>
-                <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
-            </div>
+                <!-- Beskrivelse av hinder -->
+                <div class="sm:col-span-2">
+                    <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Description</label>
+                    <textarea asp-for="ObstacleDescription" rows="4"
+                              class="block w-full rounded-lg border-2 border-gray-400 bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600 px-3 py-2 shadow-sm"
+                              placeholder="Describe the obstacle, materials, location, etc."></textarea>
+                    <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
+                </div>
 
-            <!-- Knapp for å sende inn skjemaet -->
-            <div class="pt-2">
-                <button type="submit"
-                        class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    Submit Data
-                </button>
-            </div>
-        </form>
-    </div>
-</section>
+                <!-- Knapp for å sende inn skjemaet -->
+                <div class="pt-2">
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        Submit Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+}
 
 
 
@@ -357,6 +368,10 @@
         var pilotMenuEl = document.getElementById('pilotMenu');
         function hidePilotMenu(){ try { if (pilotMenuEl) pilotMenuEl.style.display = 'none'; } catch(_){} }
         var appBody = document.body;
+        
+        // Check if user is registrar (read-only mode)
+        var isReadOnly = @(isRegistrar ? "true" : "false");
+        
         if (appBody && mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
             appBody.classList.add('map-lock');
         }
@@ -472,59 +487,68 @@
         }
 
         // Når brukeren klikker på kartet, plasser markør eller bygg linje avhengig av modus
-        map.on('click', function (e) {
-            // Velg: punkt eller bygg linje
-            if (typeof drawMode === 'string' && drawMode === 'line') {
-                if (lineLocked) { return; }
-                var zoom = map.getZoom();
-                var scale = getScaleForZoom(zoom);
-                
-                // Legg til nytt punkt i linjen
-                linePoints.push([e.latlng.lat, e.latlng.lng]);
-                
-                // Opprett eller oppdater polyline
-                if (!polyline) { 
-                    polyline = L.polyline(linePoints, { color: 'red', weight: 4 * scale, lineCap: 'butt' }).addTo(map); 
-                } else { 
-                    polyline.setLatLngs(linePoints); 
+        if (!isReadOnly) {
+            map.on('click', function (e) {
+                // Velg: punkt eller bygg linje
+                if (typeof drawMode === 'string' && drawMode === 'line') {
+                    if (lineLocked) { return; }
+                    var zoom = map.getZoom();
+                    var scale = getScaleForZoom(zoom);
+                    
+                    // Legg til nytt punkt i linjen
+                    linePoints.push([e.latlng.lat, e.latlng.lng]);
+                    
+                    // Opprett eller oppdater polyline
+                    if (!polyline) { 
+                        polyline = L.polyline(linePoints, { color: 'red', weight: 4 * scale, lineCap: 'butt' }).addTo(map); 
+                    } else { 
+                        polyline.setLatLngs(linePoints); 
+                    }
+                    
+                    // Oppdater start- og slutt-sirkler
+                    if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
+                    if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+                    
+                    if (linePoints.length > 0) {
+                        startCircle = L.circleMarker(linePoints[0], { 
+                            radius: 4 * scale, 
+                            color: '#000', 
+                            weight: 2, 
+                            fillColor: 'red', 
+                            fillOpacity: 1 
+                        }).addTo(map);
+                    }
+                    
+                    if (linePoints.length > 1) {
+                        endCircle = L.circleMarker(linePoints[linePoints.length - 1], { 
+                            radius: 4 * scale, 
+                            color: '#000', 
+                            weight: 2, 
+                            fillColor: 'red', 
+                            fillOpacity: 1 
+                        }).addTo(map);
+                    }
+                    
+                    // Oppdater hint-teksten
+                    if (linePoints.length >= 2) { 
+                        if (hint) hint.textContent = 'Linjepunkter: ' + linePoints.length + '. Trykk Done for å lagre.'; 
+                    } else { 
+                        hidden.value = ''; 
+                        if (hint) hint.textContent = 'Legg til minst 2 punkter for en linje.'; 
+                    }
+                } else {
+                    // Punktmodus - plasser eller flytt markør
+                    placeOrMoveMarker(e.latlng);
                 }
-                
-                // Oppdater start- og slutt-sirkler
-                if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
-                if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
-                
-                if (linePoints.length > 0) {
-                    startCircle = L.circleMarker(linePoints[0], { 
-                        radius: 4 * scale, 
-                        color: '#000', 
-                        weight: 2, 
-                        fillColor: 'red', 
-                        fillOpacity: 1 
-                    }).addTo(map);
+            });
+        } else {
+            // For registrars, just show coordinates in hint without showing form
+            map.on('click', function (e) {
+                if (hint) {
+                    hint.textContent = "Lat: " + e.latlng.lat.toFixed(6) + ", Lng: " + e.latlng.lng.toFixed(6) + " (View only)";
                 }
-                
-                if (linePoints.length > 1) {
-                    endCircle = L.circleMarker(linePoints[linePoints.length - 1], { 
-                        radius: 4 * scale, 
-                        color: '#000', 
-                        weight: 2, 
-                        fillColor: 'red', 
-                        fillOpacity: 1 
-                    }).addTo(map);
-                }
-                
-                // Oppdater hint-teksten
-                if (linePoints.length >= 2) { 
-                    if (hint) hint.textContent = 'Linjepunkter: ' + linePoints.length + '. Trykk Done for å lagre.'; 
-                } else { 
-                    hidden.value = ''; 
-                    if (hint) hint.textContent = 'Legg til minst 2 punkter for en linje.'; 
-                }
-            } else {
-                // Punktmodus - plasser eller flytt markør
-                placeOrMoveMarker(e.latlng);
-            }
-        });
+            });
+        }
 
         // ---------------- Lagre hinder, etter innsending (localStorage) ----------------
         const LS_KEY = 'persisted_obstacles_v1';
@@ -998,5 +1022,17 @@
         // ----- End unit toggle -----
 
         // Cleaned up: no extra JS for slider fill
+        // Also hide drawing controls for registrars
+        @if (isRegistrar)
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                var modeControls = document.querySelectorAll('.mode-btn, .leaflet-bar');
+                // Keep zoom controls, but you might want to hide specific drawing buttons
+                // This depends on how the controls are structured
+            });
+            </text>
+        }
+
     </script>
 }

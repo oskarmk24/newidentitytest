@@ -15,7 +15,7 @@ public static class DatabaseSeeder
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
         
         // Create roles if they don't exist
-        string[] roles = { "Admin", "Registerfører", "Pilot" };
+        string[] roles = { "Admin", "Registrar", "Pilot" };
         foreach (var roleName in roles)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -68,8 +68,8 @@ public static class DatabaseSeeder
         if (!dbContext.Organizations.Any())
         {
             dbContext.Organizations.AddRange(
-                new Organization { Name = "Kartverket", Description = "Ansatte i Kartverket" },
-                new Organization { Name = "NLA", Description = "Ansatte i Norsk luftambulanse" }
+                new Organization { Name = "Kartverket", Description = "Employees at Kartverket" },
+                new Organization { Name = "NLA", Description = "Employees at Norsk luftambulanse" }
             );
             await dbContext.SaveChangesAsync();
         }
