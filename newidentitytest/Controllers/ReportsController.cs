@@ -98,5 +98,66 @@ namespace newidentitytest.Controllers
 
             return View(vm);
         }
+        /// <summary>
+        /// POST: Approve a report
+        /// Only accessible to users with Registrar or Admin role
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Registrar,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var report = await _db.Reports.FirstOrDefaultAsync(r => r.Id == id);
+            if (report == null)
+            {
+                TempData["ErrorMessage"] = "Report not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Update report status
+            report.Status = "Approved";
+            report.ProcessedAt = DateTime.UtcNow;
+            report.RejectionReason = null; // Clear any previous rejection reason
+
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Report approved.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        /// <summary>
+        /// POST: Reject a report with a reason
+        /// Only accessible to users with Registrar or Admin role
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Registrar,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(int id, string rejectionReason)
+        {
+            var report = await _db.Reports.FirstOrDefaultAsync(r => r.Id == id);
+            if (report == null)
+            {
+                TempData["ErrorMessage"] = "Report not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Validate rejection reason
+            if (string.IsNullOrWhiteSpace(rejectionReason))
+            {
+                TempData["ErrorMessage"] = "You must provide a reason for rejection.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Update report status
+            report.Status = "Rejected";
+            report.RejectionReason = rejectionReason;
+            report.ProcessedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Report rejected.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
     }
+
 }
