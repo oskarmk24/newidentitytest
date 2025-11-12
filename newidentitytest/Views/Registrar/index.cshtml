@@ -1,159 +1,93 @@
-@model IEnumerable<newidentitytest.Models.Report>
-
 @{
     ViewData["Title"] = "Registrar Dashboard";
-    var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
-    var sortOrder = ViewBag.SortOrder as string ?? "desc";
-    var search = ViewBag.Search as string ?? "";
+    var reportCount = ViewBag.ReportCount as int? ?? 0;
+    var pendingCount = ViewBag.PendingReportsCount as int? ?? 0;
 }
 
-<section class="container mx-auto">
-    <header class="flex items-center justify-between mb-4">
-        <div>
-            <h1 class="text-2xl font-semibold">Welcome, Registrar</h1>
-            <p class="text-gray-600">Incoming Reports (@Model.Count())</p>
+<section class="container mx-auto py-12">
+    <!-- Welcome Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome, Registrar</h1>
+        <p class="text-xl text-gray-600">Manage and review obstacle reports</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Reports</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">@reportCount</p>
+                </div>
+                <div class="p-3 bg-indigo-100 rounded-lg">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+            </div>
         </div>
-        <form method="get" action="@Url.Action("Index")" class="flex items-center gap-2">
-            <input type="text" name="search" value="@search" placeholder="Search..."
-                   class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
-            <input type="hidden" name="sortBy" value="@sortBy" />
-            <input type="hidden" name="sortOrder" value="@sortOrder" />
-            <button type="submit" class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
-                Search
-            </button>
-            @if (!string.IsNullOrEmpty(search))
-            {
-                <a href="@Url.Action("Index", new { sortBy = sortBy, sortOrder = sortOrder })"
-                   class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Clear</a>
-            }
-        </form>
-    </header>
-
-    <div class="overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
-        <table class="min-w-full text-sm">
-            <thead class="bg-gray-50 text-left text-gray-600">
-                <tr>
+        
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Pending Reports</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">@pendingCount</p>
+                </div>
+                <div class="p-3 bg-yellow-100 rounded-lg">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Database Status</p>
                     @{
-                        string GetSortUrl(string column)
-                        {
-                            var newSortOrder = (sortBy.Equals(column, StringComparison.OrdinalIgnoreCase) && sortOrder == "asc") ? "desc" : "asc";
-                            return Url.Action("Index", new { sortBy = column, sortOrder = newSortOrder, search = search });
-                        }
+                        var status = ViewBag.SystemStatus as string ?? "Unknown";
+                        var statusColor = ViewBag.SystemStatusColor as string ?? "gray";
+                    }
+                    <p class="text-lg font-semibold text-@(statusColor)-600 mt-2">@status</p>
+                </div>
+                <div class="p-3 bg-@(statusColor)-100 rounded-lg">
+                    <svg class="w-8 h-8 text-@(statusColor)-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        string GetSortIcon(string column)
-                        {
-                            // Use a single triangle everywhere; highlight direction for active column
-                            if (sortBy.Equals(column, StringComparison.OrdinalIgnoreCase))
-                            {
-                                return sortOrder == "asc" ? "▲" : "▼";
-                            }
-                            // Inactive columns show a default downward triangle to keep icons constant
-                            return "▼";
-                        }
-                    }
-                    <th class="px-4 py-3">
-                        <a href="@GetSortUrl("id")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
-                            ID <span class="text-gray-600">@GetSortIcon("id")</span>
-                        </a>
-                    </th>
-                    <th class="px-4 py-3">
-                        <a href="@GetSortUrl("type")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
-                            Type <span class="text-gray-600">@GetSortIcon("type")</span>
-                        </a>
-                    </th>
-                    <th class="px-4 py-3">
-                        <a href="@GetSortUrl("description")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
-                            Description <span class="text-gray-600">@GetSortIcon("description")</span>
-                        </a>
-                    </th>
-                    <th class="px-4 py-3">
-                        <a href="@GetSortUrl("location")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
-                            Location <span class="text-gray-600">@GetSortIcon("location")</span>
-                        </a>
-                    </th>
-                    <th class="px-4 py-3">
-                        <a href="@GetSortUrl("createdat")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
-                            Reported At <span class="text-gray-600">@GetSortIcon("createdat")</span>
-                        </a>
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var r in Model)
-                    {
-                        var href = Url.Action("Details", "Reports", new { id = r.Id });
-                        <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='@href'">
-                            <td class="px-4 py-3">@r.Id</td>
-                            <td class="px-4 py-3">@(r.ObstacleType ?? "-")</td>
-                            <td class="px-4 py-3">@(string.IsNullOrWhiteSpace(r.ObstacleDescription) ? "-" : r.ObstacleDescription)</td>
-                            <td class="px-4 py-3">
-                                @{
-                                    if (!string.IsNullOrWhiteSpace(r.ObstacleLocation))
-                                    {
-                                        try
-                                        {
-                                            var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(r.ObstacleLocation);
-                                            if (geo.TryGetProperty("coordinates", out var coords) && coords.ValueKind == System.Text.Json.JsonValueKind.Array)
-                                            {
-                                                // Point: [lng, lat]
-                                                if (coords.GetArrayLength() >= 2 && coords[0].ValueKind == System.Text.Json.JsonValueKind.Number && coords[1].ValueKind == System.Text.Json.JsonValueKind.Number)
-                                                {
-                                                    var lng = coords[0].GetDouble();
-                                                    var lat = coords[1].GetDouble();
-                                                    <text>Lat: @lat, Lng: @lng</text>
-                                                }
-                                                // LineString: [[lng,lat], [lng,lat], ...]
-                                                else if (coords.GetArrayLength() > 0 && coords[0].ValueKind == System.Text.Json.JsonValueKind.Array)
-                                                {
-                                                    var maxShow = 3;
-                                                    var shown = 0;
-                                                    var parts = new List<string>();
-                                                    foreach (var c in coords.EnumerateArray())
-                                                    {
-                                                        if (c.ValueKind == System.Text.Json.JsonValueKind.Array && c.GetArrayLength() >= 2)
-                                                        {
-                                                            var lng = c[0].GetDouble();
-                                                            var lat = c[1].GetDouble();
-                                                            parts.Add($"(Lat: {lat}, Lng: {lng})");
-                                                            shown++;
-                                                            if (shown >= maxShow) break;
-                                                        }
-                                                    }
-                                                    var extra = coords.GetArrayLength() - shown;
-                                                    <text>Coords: @string.Join(" → ", parts)@(extra > 0 ? $" … (+{extra} more)" : "")</text>
-                                                }
-                                                else
-                                                {
-                                                    <text>-</text>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <text>-</text>
-                                            }
-                                        }
-                                        catch
-                                        {
-                                            <text>-</text>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <text>-</text>
-                                    }
-                                }
-                            </td>
-                            <td class="px-4 py-3">@r.CreatedAt.ToString("g")</td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr><td class="px-4 py-3" colspan="5">No reports found.</td></tr>
-                }
-            </tbody>
-        </table>
+    <!-- Navigation Buttons -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <!-- View All Reports Button -->
+        <a asp-controller="Reports" asp-action="Index" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-indigo-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-indigo-100 rounded-full mb-4 group-hover:bg-indigo-200 transition-colors">
+                    <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">View All Reports</h3>
+                <p class="text-gray-600 text-sm">Browse and manage all submitted obstacle reports</p>
+            </div>
+        </a>
+
+        <!-- Map Button -->
+        <a asp-controller="Obstacle" asp-action="DataForm" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-blue-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-blue-100 rounded-full mb-4 group-hover:bg-blue-200 transition-colors">
+                    <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">View Map</h3>
+                <p class="text-gray-600 text-sm">See all obstacle reports on an interactive map</p>
+            </div>
+        </a>
     </div>
 </section>
