@@ -4,6 +4,7 @@ using newidentitytest.Data;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace newidentitytest.Controllers
 {
@@ -38,6 +39,12 @@ namespace newidentitytest.Controllers
             if (User.IsInRole("Registrar"))
             {
                 return RedirectToAction("Index", "Registrar");
+            }
+            
+            // Redirect pilots to their landing page
+            if (User.IsInRole("Pilot"))
+            {
+                return RedirectToAction("Index", "Pilot");
             }
             
             // Redirect non-admin users to the obstacle form

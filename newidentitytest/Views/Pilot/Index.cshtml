@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "Pilot Dashboard";
+    var myReportsCount = ViewBag.MyReportsCount as int? ?? 0;
+    var myDraftsCount = ViewBag.MyDraftsCount as int? ?? 0;
+    var submittedCount = ViewBag.SubmittedReportsCount as int? ?? 0;
+}
+
+<section class="container mx-auto py-12">
+    <!-- Welcome Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome, Pilot</h1>
+        <p class="text-xl text-gray-600">Manage your obstacle reports</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">My Reports</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">@myReportsCount</p>
+                </div>
+                <div class="p-3 bg-indigo-100 rounded-lg">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">My Drafts</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">@myDraftsCount</p>
+                </div>
+                <div class="p-3 bg-yellow-100 rounded-lg">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Database Status</p>
+                    @{
+                        var status = ViewBag.SystemStatus as string ?? "Unknown";
+                        var statusColor = ViewBag.SystemStatusColor as string ?? "gray";
+                    }
+                    <p class="text-lg font-semibold text-@(statusColor)-600 mt-2">@status</p>
+                </div>
+                <div class="p-3 bg-@(statusColor)-100 rounded-lg">
+                    <svg class="w-8 h-8 text-@(statusColor)-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <!-- Register Report Button -->
+        <a asp-controller="Obstacle" asp-action="DataForm" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-indigo-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-indigo-100 rounded-full mb-4 group-hover:bg-indigo-200 transition-colors">
+                    <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Register Report</h3>
+                <p class="text-gray-600 text-sm">Submit a new obstacle report</p>
+            </div>
+        </a>
+
+        <!-- Map Button -->
+        <a asp-controller="Obstacle" asp-action="DataForm" asp-route-view="map"
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-blue-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-blue-100 rounded-full mb-4 group-hover:bg-blue-200 transition-colors">
+                    <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">View Map</h3>
+                <p class="text-gray-600 text-sm">See all obstacle reports on an interactive map</p>
+            </div>
+        </a>
+
+        <!-- My Drafts Button -->
+        <a asp-controller="Obstacle" asp-action="Drafts" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-yellow-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-yellow-100 rounded-full mb-4 group-hover:bg-yellow-200 transition-colors">
+                    <svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">My Drafts</h3>
+                <p class="text-gray-600 text-sm">View and edit your saved drafts</p>
+            </div>
+        </a>
+
+        <!-- My Reports Button -->
+        <a asp-controller="Pilot" asp-action="MyReports" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-green-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-green-100 rounded-full mb-4 group-hover:bg-green-200 transition-colors">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">My Reports</h3>
+                <p class="text-gray-600 text-sm">View all your submitted reports</p>
+            </div>
+        </a>
+    </div>
+</section>
