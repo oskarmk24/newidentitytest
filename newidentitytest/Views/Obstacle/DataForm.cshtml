@@ -15,6 +15,7 @@
   </summary>
   <nav style="position:absolute; right:0; top:calc(100% + 8px); background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.08); outline:1px solid #e5e7eb; padding:6px 0; width:176px;">
     <a asp-controller="Reports" asp-action="Index" class="block px-3 py-2 hover:bg-gray-100">Reports</a>
+    <a asp-controller="Obstacle" asp-action="Drafts" class="block px-3 py-2 hover:bg-gray-100">My Drafts</a>
     <a asp-controller="Home" asp-action="Privacy" class="block px-3 py-2 hover:bg-gray-100">Privacy</a>
     @if (User?.Identity?.IsAuthenticated ?? false)
     {
@@ -183,12 +184,21 @@
                 </div>
 
                 <!-- Knapp for å sende inn skjemaet -->
-                <div class="pt-2">
-                    <button type="submit"
+                <div class="pt-2 flex gap-3">
+                    <button type="submit" name="action" value="submit"
                             class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                         Submit Data
                     </button>
+                    <button type="submit" name="action" value="draft"
+                            class="inline-flex items-center justify-center rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700">
+                        Save as Draft
+                    </button>
                 </div>
+                @if (ViewBag.DraftId != null)
+                {
+                    <input type="hidden" name="id" value="@ViewBag.DraftId" />
+                    <p class="text-sm text-gray-600 mt-2">Editing draft #@ViewBag.DraftId</p>
+                }
             </form>
         </div>
     </section>
