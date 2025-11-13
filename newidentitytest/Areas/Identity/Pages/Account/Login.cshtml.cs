@@ -147,7 +147,7 @@ namespace newidentitytest.Areas.Identity.Pages.Account
                         // Pilot -> Obstacle/DataForm
                         if (roles.Contains("Pilot"))
                         {
-                            return LocalRedirect(Url.Content("~/Obstacle/DataForm"));
+                            return LocalRedirect(Url.Content("~/Pilot/Index"));
                         }
 
                         // Registrar -> Registrar/Index
