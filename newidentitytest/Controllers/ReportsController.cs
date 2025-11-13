@@ -80,6 +80,29 @@ namespace newidentitytest.Controllers
         }
 
 
+        // GET /api/reports/approved
+        [HttpGet("/api/reports/approved")]
+        [AllowAnonymous]  // Public endpoint - anyone can see approved reports
+        public async Task<IActionResult> GetApproved()
+        {
+            var approvedReports = await _db.Reports
+                .Where(r => r.Status == "Approved")
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.ObstacleType,
+                    r.ObstacleHeight,
+                    r.ObstacleDescription,
+                    r.ObstacleLocation,
+                    r.CreatedAt
+                })
+                .ToListAsync();
+            
+            return Ok(approvedReports);
+        }
+
+
         // GET /Reports/Details/{id}
         [HttpGet]
         public async Task<IActionResult> Details(int id)

@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Approved Obstacles Map";
+}
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="col-12">
+            <h1 class="text-center my-4">Approved Obstacle Reports</h1>
+            <div id="map" style="height: 80vh; width: 100%;"></div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    // Initialize map centered on Norway
+    var map = L.map('map').setView([62.0, 10.0], 5);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Fetch approved reports from API
+    fetch('/api/reports/approved')
+        .then(response => response.json())
+        .then(reports => {
+            console.log('Loaded reports:', reports);
+            
+            if (reports.length === 0) {
+                alert('No approved reports found.');
+                return;
+            }
+
+            var bounds = [];
+
+            reports.forEach(report => {
+                if (!report.obstacleLocation) return;
+
+                try {
+                    var geo = JSON.parse(report.obstacleLocation);
+                    
+                    if (geo.type === 'Point' && Array.isArray(geo.coordinates)) {
+                        // Point obstacle - add marker
+                        var lng = geo.coordinates[0];
+                        var lat = geo.coordinates[1];
+                        
+                        var marker = L.marker([lat, lng]).addTo(map);
+                        marker.bindPopup(`
+                            <strong>${report.obstacleType || 'Unknown'}</strong><br>
+                            Height: ${report.obstacleHeight ? report.obstacleHeight + ' m' : 'N/A'}<br>
+                            ${report.obstacleDescription || ''}<br>
+                            <a href="/Reports/Details/${report.id}">View Details</a>
+                        `);
+                        
+                        bounds.push([lat, lng]);
+                    } 
+                    else if (geo.type === 'LineString' && Array.isArray(geo.coordinates)) {
+                        // LineString obstacle - add polyline
+                        var latlngs = geo.coordinates.map(c => [c[1], c[0]]);
+                        
+                        var polyline = L.polyline(latlngs, { 
+                            color: 'red', 
+                            weight: 4, 
+                            opacity: 0.8 
+                        }).addTo(map);
+                        
+                        polyline.bindPopup(`
+                            <strong>${report.obstacleType || 'Unknown'}</strong><br>
+                            Height: ${report.obstacleHeight ? report.obstacleHeight + ' m' : 'N/A'}<br>
+                            ${report.obstacleDescription || ''}<br>
+                            <a href="/Reports/Details/${report.id}">View Details</a>
+                        `);
+                        
+                        latlngs.forEach(coord => bounds.push(coord));
+                    }
+                } catch (e) {
+                    console.warn('Could not parse location for report', report.id, e);
+                }
+            });
+
+            // Fit map to show all obstacles
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading approved reports:', error);
+            alert('Failed to load obstacle data.');
+        });
+</script>
