@@ -13,15 +13,13 @@ namespace newidentitytest.Models
         /// Forhåndsdefinert type for hinderet (valgt via knapper).
         /// Må fylles ut og kan være maks 100 tegn.
         /// </summary>
-        [Required(ErrorMessage = "Obstacle type is required.")]
         [MaxLength(100)]
-        public string ObstacleType { get; set; }
+        public string? ObstacleType { get; set; }
 
         /// <summary>
         /// Høyden på hinderet i meter.
         /// Må fylles ut og være mellom 0 og 200.
         /// </summary>
-        [Required(ErrorMessage = "Obstacle height is required.")]
         [Range(0, 200, ErrorMessage = "Height must be between {1} and {2} meters.")]
         public decimal ObstacleHeight { get; set; }
 
@@ -29,9 +27,8 @@ namespace newidentitytest.Models
         /// En kort beskrivelse av hinderet.
         /// Må fylles ut og kan være maks 1000 tegn.
         /// </summary>
-        [Required(ErrorMessage = "Obstacle Description is required.")]
         [MaxLength(1000)]
-        public string ObstacleDescription { get; set; }
+        public string? ObstacleDescription { get; set; }
 
         /// <summary>
         /// Lokasjon (sted) til hinderet.
