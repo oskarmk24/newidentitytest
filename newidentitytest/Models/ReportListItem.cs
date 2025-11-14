@@ -10,6 +10,8 @@ namespace newidentitytest.Models
         public string Sender { get; set; } = string.Empty;
         // Selected obstacle type (optional legacy fallback)
         public string? ObstacleType { get; set; }
+        // Workflow status as maintained by registrar (Pending/Approved/Rejected)
+        public string Status { get; set; } = "Pending";
         
         // Stored GeoJSON-like location string (e.g., { type: "Point", coordinates: [lng, lat] })
         public string? ObstacleLocation { get; set; }

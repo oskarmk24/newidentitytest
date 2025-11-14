@@ -33,6 +33,7 @@ namespace newidentitytest.Controllers
                             CreatedAt = r.CreatedAt,
                             Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
                             ObstacleType = r.ObstacleType,
+                            Status = r.Status,
                             ObstacleLocation = r.ObstacleLocation
                         };
 
@@ -44,7 +45,8 @@ namespace newidentitytest.Controllers
                     r.Id.ToString().Contains(searchLower) ||
                     r.Sender.ToLower().Contains(searchLower) ||
                     (r.ObstacleType != null && r.ObstacleType.ToLower().Contains(searchLower)) ||
-                    r.CreatedAt.ToString("MMM dd, yyyy").ToLower().Contains(searchLower)
+                    r.CreatedAt.ToString("MMM dd, yyyy").ToLower().Contains(searchLower) ||
+                    r.Status.ToLower().Contains(searchLower)
                 );
             }
 
@@ -55,6 +57,7 @@ namespace newidentitytest.Controllers
                 "createdat" => sortOrder == "asc" ? query.OrderBy(r => r.CreatedAt) : query.OrderByDescending(r => r.CreatedAt),
                 "sender" => sortOrder == "asc" ? query.OrderBy(r => r.Sender) : query.OrderByDescending(r => r.Sender),
                 "obstacletype" => sortOrder == "asc" ? query.OrderBy(r => r.ObstacleType ?? "") : query.OrderByDescending(r => r.ObstacleType ?? ""),
+                "status" => sortOrder == "asc" ? query.OrderBy(r => r.Status) : query.OrderByDescending(r => r.Status),
                 _ => query.OrderByDescending(r => r.CreatedAt)
             };
 
