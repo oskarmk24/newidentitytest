@@ -22,24 +22,9 @@ namespace newidentitytest.Controllers
 			var reportCount = await _db.Reports.CountAsync();
 			ViewBag.ReportCount = reportCount;
 
-			// Pending reports list and count
-			var pendingReports = await _db.Reports
-				.Where(r => r.Status == "Pending")
-				.OrderByDescending(r => r.CreatedAt)
-				.Take(50)
-				.Select(r => new Models.ReportListItem
-				{
-					Id = r.Id,
-					CreatedAt = r.CreatedAt,
-					Sender = "(unknown)", // resolved in view if needed
-					ObstacleType = r.ObstacleType,
-					Status = r.Status,
-					ObstacleLocation = r.ObstacleLocation
-				})
-				.ToListAsync();
-
-			ViewBag.PendingReports = pendingReports;
-			ViewBag.PendingReportsCount = pendingReports.Count;
+			// Pending reports count (shallow query)
+			var pendingCount = await _db.Reports.CountAsync(r => r.Status == "Pending");
+			ViewBag.PendingReportsCount = pendingCount;
 			
 			// Check system status (database connectivity)
 			bool isSystemHealthy = false;
