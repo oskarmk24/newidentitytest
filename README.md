@@ -53,7 +53,6 @@ VS Code metode
 2. Høyreklikk på docker compose filen.
 3. Trykk compose up.
 4. Gå inn på http://localhost:5173.
-5. Burde funke??
 
 
 
