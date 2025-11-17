@@ -141,8 +141,8 @@
         // Try to parse the stored GeoJSON-like string and render a Leaflet map
         try {
           // ObstacleLocation is already a JSON string, so we need to handle it correctly
-          var locationStr = @Html.Raw(Json.Serialize(Model.Report.ObstacleLocation));
-          var geo = typeof locationStr === 'string' ? JSON.parse(locationStr) : locationStr;
+          var locationStr = @Json.Serialize(Model.Report.ObstacleLocation);
+          var geo = JSON.parse(locationStr);
           
           // Handle both Point and LineString types
           if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates)) {
@@ -160,7 +160,6 @@
           }
         } catch(e) { 
           console.warn('Could not parse location JSON', e); 
-          console.log('Location string was:', @Html.Raw(Json.Serialize(Model.Report.ObstacleLocation)));
         }
       </script>
     }

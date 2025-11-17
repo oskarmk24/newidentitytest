@@ -95,10 +95,9 @@
                         // Ensure tiles load even if parsing fails
                         map2.setView([59.91, 10.75], 5);
 
-                        // Robustly parse location which may be a JSON string containing JSON
-                        var raw = @Html.Raw(Json.Serialize(Model.ObstacleLocation));
-                        var geo = JSON.parse(raw);
-                        if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch(_) {} }
+                        // Parse location JSON string
+                        var locationStr = @Json.Serialize(Model.ObstacleLocation);
+                        var geo = JSON.parse(locationStr);
 
                         // Støtt både Point og LineString på oversiktskartet
                         if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates)) {

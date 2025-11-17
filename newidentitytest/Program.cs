@@ -47,6 +47,31 @@ else
 
 app.UseHttpsRedirection();
 
+// Security headers middleware - protects against various attacks
+app.Use(async (context, next) =>
+{
+    // Prevent MIME type sniffing attacks
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    
+    // Prevent clickjacking attacks by disallowing embedding in frames
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    
+    // Control referrer information to prevent information leakage
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    
+    // Content Security Policy - protects against XSS attacks
+    context.Response.Headers.Append("Content-Security-Policy", 
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
+        "img-src 'self' data: https://unpkg.com https://*.tile.openstreetmap.org; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "connect-src 'self'; " +
+        "frame-ancestors 'none';");
+    
+    await next();
+});
+
 // Viktig for å serve wwwroot (f.eks. wwwroot/css/site.css fra Tailwind)
 app.UseStaticFiles();
 
