@@ -342,6 +342,25 @@
     .obstacle-type-button.obstacle-type-selected { background-color: #eef2ff; border-color: #6366f1; color: #1e1b4b; box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25); }
     .obstacle-type-label { display: flex; align-items: center; justify-content: center; }
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
+    
+    /* Styling for popup-melding */
+    .location-warning-popup .leaflet-popup-content-wrapper {
+        background-color: #fef3c7;
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .location-warning-popup .leaflet-popup-content {
+        margin: 10px;
+        font-size: 14px;
+        color: #92400e;
+    }
+    
+    .location-warning-popup .leaflet-popup-tip {
+        background-color: #fef3c7;
+        border: 1px solid #f59e0b;
+    }
 </style>
 
 @section Scripts {
@@ -588,12 +607,64 @@
             setLocation(latlng.lat, latlng.lng);
         }
 
+        // Funksjon for å vise popup-melding på kartet
+        function showLocationWarningPopup(latlng, message) {
+            // Fjern eksisterende popup hvis den finnes
+            if (map._locationWarningPopup) {
+                map.removeLayer(map._locationWarningPopup);
+            }
+            
+            // Opprett en midlertidig markør for popup
+            var tempMarker = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'location-warning-marker',
+                    html: '',
+                    iconSize: [0, 0]
+                })
+            }).addTo(map);
+            
+            // Bind popup til markøren
+            tempMarker.bindPopup(message, {
+                closeButton: true,
+                autoClose: true,
+                autoPan: true,
+                className: 'location-warning-popup'
+            }).openPopup();
+            
+            // Lagre referanse for senere opprydding
+            map._locationWarningPopup = tempMarker;
+            
+            // Fjern popup automatisk etter 5 sekunder
+            setTimeout(function() {
+                if (map._locationWarningPopup) {
+                    map.removeLayer(map._locationWarningPopup);
+                    map._locationWarningPopup = null;
+                }
+            }, 5000);
+        }
+
         // Når brukeren klikker på kartet, plasser markør eller bygg linje avhengig av modus
         if (!isReadOnly) {
             map.on('click', function (e) {
                 // Velg: punkt eller bygg linje
                 if (typeof drawMode === 'string' && drawMode === 'line') {
-                    if (lineLocked) { return; }
+                    if (lineLocked) {
+                        // Vis popup hvis linjen er låst
+                        showLocationWarningPopup(
+                            e.latlng,
+                            '<div style="text-align: center; padding: 5px;"><strong>Linjen er allerede lagret!</strong><br>Trykk "Slett" for å starte på nytt.</div>'
+                        );
+                        return;
+                    }
+                    
+                    // Sjekk om det allerede finnes punkter i linjen
+                    if (linePoints.length > 0) {
+                        // Vis bekreftelsesdialog før man legger til flere punkter
+                        if (!confirm('Du har allerede startet en linje med ' + linePoints.length + ' punkt(er). Vil du fortsette å legge til punkter til denne linjen?')) {
+                            return; // Avbryt hvis brukeren klikker "Avbryt"
+                        }
+                    }
+                    
                     var zoom = map.getZoom();
                     var scale = getScaleForZoom(zoom);
                     
@@ -639,7 +710,14 @@
                         if (hint) hint.textContent = 'Legg til minst 2 punkter for en linje.'; 
                     }
                 } else {
-                    // Punktmodus - plasser eller flytt markør
+                    // Punktmodus - sjekk om markør allerede finnes
+                    if (marker) {
+                        // Vis bekreftelsesdialog før markøren flyttes
+                        if (!confirm('Du har allerede markert en lokasjon. Vil du flytte markøren til denne nye posisjonen?')) {
+                            return; // Avbryt hvis brukeren klikker "Avbryt"
+                        }
+                    }
+                    // Plasser eller flytt markør
                     placeOrMoveMarker(e.latlng);
                 }
             });
