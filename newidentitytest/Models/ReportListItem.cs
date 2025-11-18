@@ -8,6 +8,8 @@ namespace newidentitytest.Models
         public DateTime CreatedAt { get; set; }
         // Human-friendly sender label (email or username)
         public string Sender { get; set; } = string.Empty;
+        // Optional organization name (resolved via the sender)
+        public string? OrganizationName { get; set; }
         // Selected obstacle type (optional legacy fallback)
         public string? ObstacleType { get; set; }
         // Workflow status as maintained by registrar (Pending/Approved/Rejected)
