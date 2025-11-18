@@ -202,5 +202,23 @@ namespace newidentitytest.Controllers
             
             return Ok(reports);
         }
+        [HttpGet]
+        [Route("/api/obstacles/approved")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetApprovedObstacles()
+        {
+            var approvedReports = await _dbContext.Reports
+                .Where(r => r.Status == "Approved" && !string.IsNullOrEmpty(r.ObstacleLocation))
+                .Select(r => new
+                {
+                    Id = r.Id,
+                    Type = r.ObstacleType ?? "Unknown",
+                    Height = r.ObstacleHeight,
+                    Location = r.ObstacleLocation
+                })
+                .ToListAsync();
+            
+            return Ok(approvedReports);
+        }
     }
 }

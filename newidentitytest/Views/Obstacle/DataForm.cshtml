@@ -806,7 +806,7 @@
         // Load obstacles from database
         async function loadObstaclesFromDatabase() {
             try {
-                const response = await fetch('/api/obstacles');
+                const response = await fetch('/api/obstacles/approved');
                 if (!response.ok) return [];
                 const reports = await response.json();
                 return reports.map(r => {
