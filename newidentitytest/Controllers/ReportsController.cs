@@ -37,18 +37,10 @@ namespace newidentitytest.Controllers
                             ObstacleLocation = r.ObstacleLocation
                         };
 
-            // Apply search filter if provided
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var searchLower = search.ToLower();
-                query = query.Where(r => 
-                    r.Id.ToString().Contains(searchLower) ||
-                    r.Sender.ToLower().Contains(searchLower) ||
-                    (r.ObstacleType != null && r.ObstacleType.ToLower().Contains(searchLower)) ||
-                    r.CreatedAt.ToString("MMM dd, yyyy").ToLower().Contains(searchLower) ||
-                    r.Status.ToLower().Contains(searchLower)
-                );
-            }
+            // NOTE: applying complex string operations (ToLower/ToString formatting) inside an EF Core
+            // LINQ expression can fail to translate to SQL on some providers. To keep the UI responsive
+            // and make the search button work reliably, we'll materialize the projected results first
+            // and then apply an in-memory filter if a search term is provided.
 
             // Apply sorting
             query = sortBy.ToLower() switch
@@ -62,6 +54,19 @@ namespace newidentitytest.Controllers
             };
 
             var items = await query.ToListAsync();
+
+            // Apply search filter in-memory to avoid EF translation issues
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLowerInvariant();
+                items = items.Where(r =>
+                    r.Id.ToString().Contains(searchLower) ||
+                    (r.Sender ?? string.Empty).ToLowerInvariant().Contains(searchLower) ||
+                    ((r.ObstacleType ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
+                    r.CreatedAt.ToString("MMM dd, yyyy").ToLowerInvariant().Contains(searchLower) ||
+                    ((r.Status ?? string.Empty).ToLowerInvariant().Contains(searchLower))
+                ).ToList();
+            }
             
             // Pass sorting info to view
             ViewBag.SortBy = sortBy;
