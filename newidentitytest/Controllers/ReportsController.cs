@@ -185,24 +185,24 @@ namespace newidentitytest.Controllers
                 return;
 
             // Get the name of the registrar/admin who processed the report
-            var registrarName = "en registerfører";
+            var registrarName = "a registrar";
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(currentUserId))
             {
                 var registrar = await _db.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
                 if (registrar != null)
                 {
-                    registrarName = registrar.Email ?? registrar.UserName ?? "en registerfører";
+                    registrarName = registrar.Email ?? registrar.UserName ?? "a registrar";
                 }
             }
 
             var title = status == "Approved" 
-                ? $"Rapport #{report.Id} godkjent" 
-                : $"Rapport #{report.Id} avvist";
+                ? $"Report #{report.Id} approved" 
+                : $"Report #{report.Id} rejected";
 
             var message = status == "Approved"
-                ? $"Din rapport #{report.Id} har blitt godkjent av {registrarName}."
-                : $"Din rapport #{report.Id} har blitt avvist av {registrarName}. Årsak: {rejectionReason}";
+                ? $"Your report #{report.Id} has been approved by {registrarName}."
+                : $"Your report #{report.Id} has been rejected by {registrarName}. Reason: {rejectionReason}";
 
             var notification = new Notification
             {
