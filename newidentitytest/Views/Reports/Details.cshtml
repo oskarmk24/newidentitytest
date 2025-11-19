@@ -12,25 +12,31 @@
     </header>
 
         @* Status Badge *@
-        <div class="flex items-center gap-2">
-            @if (Model.Report.Status == "Approved")
-            {
-                <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-500">
-                     Approved
-                </span>
-            }
-            else if (Model.Report.Status == "Rejected")
-            {
-                <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-500">
-                     Rejected
-                </span>
-            }
-            else
-            {
-                <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
-                     Pending Review
-                </span>
-            }
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+                @if (Model.Report.Status == "Approved")
+                {
+                    <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-500">
+                         Approved
+                    </span>
+                }
+                else if (Model.Report.Status == "Rejected")
+                {
+                    <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-500">
+                         Rejected
+                    </span>
+                }
+                else
+                {
+                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                         Pending Review
+                    </span>
+                }
+            </div>
+            <div class="text-sm text-gray-600">
+                Assigned registrar:
+                <strong>@(ViewBag.AssignedRegistrarName ?? "Not assigned")</strong>
+            </div>
         </div>
 
     @* Definition list presents key/value pairs neatly *@
@@ -58,6 +64,12 @@
       <div>
         <dt class="text-sm text-gray-600">Reported At</dt>
         <dd class="mt-1">@Model.Report.CreatedAt.ToString("g")</dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-600">Assigned Registrar</dt>
+        <dd class="mt-1">@(
+            ViewBag.AssignedRegistrarName ?? "Not assigned"
+        )</dd>
       </div>
       <div class="sm:col-span-2">
         <dt class="text-sm text-gray-600">Description</dt>
@@ -164,6 +176,48 @@
         }
       </script>
     }
+
+        @if (User.IsInRole("Registrar") && Model.Report.Status == "Pending")
+        {
+            var registrarOptions = ViewBag.RegistrarOptions as IEnumerable<dynamic>;
+            <div class="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">Assign to registrar</h3>
+                <form asp-action="AssignRegistrar" method="post" class="space-y-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Report.Id" />
+                    <div>
+                        <label for="registrarId" class="block text-sm font-medium text-gray-700 mb-2">Select registrar</label>
+                        <select id="registrarId" name="registrarId" class="w-full rounded-lg border border-gray-300 p-2">
+                            <option value="">Not assigned</option>
+                            @if (registrarOptions != null)
+                            {
+                                foreach (var registrar in registrarOptions)
+                                {
+                                    string registrarId = registrar.Id;
+                                    string registrarName = registrar.Name;
+                                    bool isSelected = Model.Report.AssignedRegistrarId == registrarId;
+                                    if (isSelected)
+                                    {
+                                        <option value="@registrarId" selected>
+                                            @registrarName
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@registrarId">
+                                            @registrarName
+                                        </option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500">
+                        Save assignment
+                    </button>
+                </form>
+            </div>
+        }
 
         @* Action buttons for Registrar *@
         @if (User.IsInRole("Registrar") || User.IsInRole("Admin"))

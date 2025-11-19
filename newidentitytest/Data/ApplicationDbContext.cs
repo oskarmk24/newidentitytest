@@ -78,6 +78,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
             entity.Property(r => r.UserId)
                   .HasMaxLength(255);
+            
+            entity.Property(r => r.AssignedRegistrarId)
+                  .HasMaxLength(255);
 
             entity.Property(r => r.CreatedAt)
                   .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -85,6 +88,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
             entity.HasIndex(r => r.UserId)
                   .HasDatabaseName("IX_reports_UserId");
+            
+            entity.HasIndex(r => r.AssignedRegistrarId)
+                  .HasDatabaseName("IX_reports_AssignedRegistrarId");
         });
     }
 }
