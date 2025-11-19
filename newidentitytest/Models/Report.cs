@@ -23,6 +23,10 @@ namespace newidentitytest.Models
         
         [MaxLength(255)]
         public string? UserId { get; set; }
+        
+        // Registrar assignment (optional)
+        [MaxLength(255)]
+        public string? AssignedRegistrarId { get; set; }
 
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; }
