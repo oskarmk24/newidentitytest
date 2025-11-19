@@ -27,15 +27,11 @@ namespace newidentitytest.Controllers
             var query = from r in _db.Reports
                         join u in _db.Users on r.UserId equals u.Id into gj
                         from u in gj.DefaultIfEmpty()
-                        let organizationId = u != null ? u.OrganizationId : null
-                        join o in _db.Organizations on organizationId equals o.Id into orgGroup
-                        from o in orgGroup.DefaultIfEmpty()
                         select new ReportListItem
                         {
                             Id = r.Id,
                             CreatedAt = r.CreatedAt,
                             Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
-                            OrganizationName = o != null ? o.Name : null,
                             ObstacleType = r.ObstacleType,
                             Status = r.Status,
                             ObstacleLocation = r.ObstacleLocation
@@ -64,13 +60,14 @@ namespace newidentitytest.Controllers
             {
                 var searchLower = search.ToLowerInvariant();
                 items = items.Where(r =>
-                    r.Id.ToString().ToLowerInvariant().Contains(searchLower) ||
+                    r.Id.ToString().Contains(searchLower) ||
                     (r.Sender ?? string.Empty).ToLowerInvariant().Contains(searchLower) ||
-                    ((r.OrganizationName ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
                     ((r.ObstacleType ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
                     r.CreatedAt.ToString("MMM dd, yyyy").ToLowerInvariant().Contains(searchLower) ||
                     ((r.Status ?? string.Empty).ToLowerInvariant().Contains(searchLower))
-                ).ToList();
+            ).ToList();
+
+                
             }
             
             // Pass sorting info to view
