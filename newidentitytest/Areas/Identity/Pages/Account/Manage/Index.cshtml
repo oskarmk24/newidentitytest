@@ -5,8 +5,8 @@
     ViewData["Title"] = "Profile";
 }
 
-<!-- Hoved container med gradient bakgrunn -->
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+<!-- Hoved container med nøytral bakgrunn -->
+<div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-2xl w-full">
         
         <!-- Overskrift seksjon -->
@@ -21,14 +21,14 @@
             <!-- Statusmelding hvis tilgjengelig -->
             @if (!string.IsNullOrEmpty(Model.StatusMessage))
             {
-                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
-                    <p class="text-green-700 font-medium">@Model.StatusMessage</p>
+                <div class="bg-gray-100 border-l-4 border-gray-400 p-4 rounded-r-lg">
+                    <p class="text-gray-800 font-medium">@Model.StatusMessage</p>
                 </div>
             }
 
             <div class="space-y-5">
                 <!-- Username seksjon -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                     <div class="flex items-center justify-between flex-wrap gap-4">
                         <div class="flex-1">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
@@ -42,7 +42,7 @@
                 </div>
 
                 <!-- E-post seksjon -->
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                     <div class="flex items-start justify-between flex-wrap gap-4">
                         <div class="flex-1 min-w-0">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
@@ -56,7 +56,7 @@
                 </div>
 
                 <!-- Passord seksjon -->
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                     <div class="flex items-center justify-between flex-wrap gap-4">
                         <div class="flex-1">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
@@ -70,7 +70,7 @@
                 </div>
 
                 <!-- Telefonnummer seksjon -->
-                <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                     <div class="flex items-center justify-between flex-wrap gap-4">
                         <div class="flex-1">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
@@ -138,7 +138,7 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">New Username</label>
                 <input type="text" name="NewUsername" required value="@Model.Username"
-                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-200 outline-none transition-all" 
                        placeholder="Enter new username" />
             </div>
             <div class="flex gap-3 pt-4">
@@ -147,7 +147,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                        class="flex-1 bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-gray-800 transition-all shadow-lg">
                     Save Username
                 </button>
             </div>
@@ -170,7 +170,7 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">New Email Address</label>
                 <input type="email" name="NewEmail" required 
-                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-200 outline-none transition-all" 
                        placeholder="Enter new email address" />
             </div>
             <div class="flex gap-3 pt-4">
@@ -179,7 +179,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                        class="flex-1 bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-gray-800 transition-all shadow-lg">
                     Save Email
                 </button>
             </div>
@@ -202,19 +202,19 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
                 <input type="password" name="OldPassword" required 
-                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-200 outline-none transition-all" 
                        placeholder="Enter current password" />
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
                 <input type="password" name="NewPassword" required 
-                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-200 outline-none transition-all" 
                        placeholder="Enter new password" />
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
                 <input type="password" name="ConfirmPassword" required 
-                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-200 outline-none transition-all" 
                        placeholder="Confirm new password" />
             </div>
             <div class="flex gap-3 pt-4">
@@ -223,7 +223,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                        class="flex-1 bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-gray-800 transition-all shadow-lg">
                     Save Password
                 </button>
             </div>
@@ -246,9 +246,9 @@
             <div>
                 <label asp-for="Input.PhoneNumber" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                 <input asp-for="Input.PhoneNumber" 
-                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-200 outline-none transition-all" 
                        placeholder="Enter phone number" />
-                <span asp-validation-for="Input.PhoneNumber" class="text-red-600 text-xs font-medium"></span>
+                <span asp-validation-for="Input.PhoneNumber" class="text-gray-700 text-xs font-medium"></span>
             </div>
             <div class="flex gap-3 pt-4">
                 <button type="button" onclick="closeModal('phoneModal')" 
@@ -256,7 +256,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                        class="flex-1 bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-gray-800 transition-all shadow-lg">
                     Save Phone Number
                 </button>
             </div>
@@ -280,7 +280,7 @@
             
             <div class="space-y-3">
                 <a asp-page="./DownloadPersonalData" 
-                   class="block w-full px-4 py-3 bg-blue-50 border-2 border-blue-200 text-blue-700 font-medium rounded-xl hover:bg-blue-100 transition-all text-center">
+                   class="block w-full px-4 py-3 border-2 border-gray-300 text-gray-800 font-medium rounded-xl hover:bg-gray-50 transition-all text-center">
                     <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -288,7 +288,7 @@
                 </a>
                 
                 <a asp-page="./DeletePersonalData" 
-                   class="block w-full px-4 py-3 bg-red-50 border-2 border-red-200 text-red-700 font-medium rounded-xl hover:bg-red-100 transition-all text-center">
+                   class="block w-full px-4 py-3 border-2 border-gray-300 text-gray-800 font-medium rounded-xl hover:bg-gray-50 transition-all text-center">
                     <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
