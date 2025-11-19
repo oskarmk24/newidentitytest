@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using newidentitytest.Data;
 
@@ -11,9 +12,11 @@ using newidentitytest.Data;
 namespace newidentitytest.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251119144214_AddNotifications")]
+    partial class AddNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -318,8 +321,8 @@ namespace newidentitytest.Migrations
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                      b.Property<string>("ObstacleDescription")
-                          .HasColumnType("text");
+                    b.Property<string>("ObstacleDescription")
+                        .HasColumnType("text");
 
                     b.Property<int?>("ObstacleHeight")
                         .HasColumnType("int");
@@ -337,26 +340,19 @@ namespace newidentitytest.Migrations
                     b.Property<string>("RejectionReason")
                         .HasColumnType("text");
 
-                      b.Property<string>("Status")
-                          .IsRequired()
-                          .HasMaxLength(50)
-                          .HasColumnType("varchar(50)");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
-                      b.Property<string>("AssignedRegistrarId")
-                          .HasMaxLength(255)
-                          .HasColumnType("varchar(255)");
+                    b.Property<string>("UserId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
-                      b.Property<string>("UserId")
-                          .HasMaxLength(255)
-                          .HasColumnType("varchar(255)");
+                    b.HasKey("Id");
 
-                      b.HasKey("Id");
-
-                      b.HasIndex("AssignedRegistrarId")
-                          .HasDatabaseName("IX_reports_AssignedRegistrarId");
-
-                      b.HasIndex("UserId")
-                          .HasDatabaseName("IX_reports_UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_reports_UserId");
 
                     b.ToTable("reports", (string)null);
                 });
