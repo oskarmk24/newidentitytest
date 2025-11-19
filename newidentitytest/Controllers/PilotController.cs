@@ -96,18 +96,6 @@ namespace newidentitytest.Controllers
 							ObstacleLocation = r.ObstacleLocation
 						};
 
-			// Apply search filter if provided
-			if (!string.IsNullOrWhiteSpace(search))
-			{
-				var searchLower = search.ToLower();
-				query = query.Where(r =>
-					r.Id.ToString().Contains(searchLower) ||
-					(r.ObstacleType != null && r.ObstacleType.ToLower().Contains(searchLower)) ||
-					r.CreatedAt.ToString("MMM dd, yyyy").ToLower().Contains(searchLower) ||
-                    r.Status.ToLower().Contains(searchLower)
-				);
-			}
-
 			// Apply sorting
 			query = sortBy.ToLower() switch
 			{
@@ -119,6 +107,20 @@ namespace newidentitytest.Controllers
 			};
 
 			var items = await query.ToListAsync();
+
+			// Apply search filter in-memory so string operations won't break SQL translation
+			if (!string.IsNullOrWhiteSpace(search))
+			{
+				var searchLower = search.ToLowerInvariant();
+				items = items.Where(r =>
+						r.Id.ToString().Contains(searchLower) ||
+						((r.ObstacleType ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
+						r.CreatedAt.ToString("MMM dd, yyyy").ToLowerInvariant().Contains(searchLower) ||
+						((r.Status ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
+						((r.ObstacleLocation ?? string.Empty).ToLowerInvariant().Contains(searchLower))
+					)
+					.ToList();
+			}
 
 			// Pass sorting info to view
 			ViewBag.SortBy = sortBy;
