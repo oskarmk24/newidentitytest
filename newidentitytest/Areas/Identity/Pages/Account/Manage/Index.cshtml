@@ -1,0 +1,337 @@
+@* Copilot: Removed legacy profile UI, retained backend logic — new profile modal/component added *@
+@page
+@model newidentitytest.Areas.Identity.Pages.Account.Manage.IndexModel
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<!-- Hoved container med gradient bakgrunn -->
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full">
+        
+        <!-- Overskrift seksjon -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Your Profile</h1>
+            <p class="text-gray-600">Manage your account information and settings</p>
+        </div>
+
+        <!-- Hovedkort med hvit bakgrunn -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+            
+            <!-- Statusmelding hvis tilgjengelig -->
+            @if (!string.IsNullOrEmpty(Model.StatusMessage))
+            {
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                    <p class="text-green-700 font-medium">@Model.StatusMessage</p>
+                </div>
+            }
+
+            <div class="space-y-5">
+                <!-- Username seksjon -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                            <p class="text-lg font-medium text-gray-900">@Model.Username</p>
+                        </div>
+                        <button type="button" onclick="openModal('usernameModal')" 
+                           class="inline-flex items-center px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                            Change
+                        </button>
+                    </div>
+                </div>
+
+                <!-- E-post seksjon -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6">
+                    <div class="flex items-start justify-between flex-wrap gap-4">
+                        <div class="flex-1 min-w-0">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                            <p class="text-lg font-medium text-gray-900 mb-2 break-words">@Model.Email</p>
+                        </div>
+                        <button type="button" onclick="openModal('emailModal')" 
+                           class="inline-flex items-center px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                            Change
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Passord seksjon -->
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                            <p class="text-gray-900 text-lg">••••••••••••</p>
+                        </div>
+                        <button type="button" onclick="openModal('passwordModal')" 
+                           class="inline-flex items-center px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                            Change
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Telefonnummer seksjon -->
+                <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                            <p class="text-lg font-medium text-gray-900">@(string.IsNullOrWhiteSpace(Model.Input?.PhoneNumber) ? "Not set" : Model.Input.PhoneNumber)</p>
+                        </div>
+                        <button type="button" onclick="openModal('phoneModal')" 
+                           class="inline-flex items-center px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                            Change
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tilleggshandlinger nederst -->
+            <div class="pt-6 border-t-2 border-gray-100 space-y-3">
+                <!-- Personlig data seksjon -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Personal Data</h3>
+                            <p class="text-sm text-gray-600 mb-4">
+                                Access, download, or delete your personal information. This includes all data associated with your account such as profile details, activity history, and preferences. You have full control over your data in compliance with privacy regulations (GDPR).
+                            </p>
+                            <button type="button" onclick="openModal('personalDataModal')" 
+                               class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
+                                Manage Personal Data
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tilbake til hjem lenke -->
+                <a asp-controller="Home" asp-action="Index"
+                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for endre brukernavn -->
+<div id="usernameModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Change Username</h2>
+            <button onclick="closeModal('usernameModal')" type="button" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form method="post" asp-page-handler="ChangeUsername" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">New Username</label>
+                <input type="text" name="NewUsername" required value="@Model.Username"
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       placeholder="Enter new username" />
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModal('usernameModal')" 
+                        class="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                    Save Username
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for endre e-post -->
+<div id="emailModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Change Email</h2>
+            <button onclick="closeModal('emailModal')" type="button" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form asp-page="./Email" method="post" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">New Email Address</label>
+                <input type="email" name="NewEmail" required 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       placeholder="Enter new email address" />
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModal('emailModal')" 
+                        class="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                    Save Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for endre passord -->
+<div id="passwordModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Change Password</h2>
+            <button onclick="closeModal('passwordModal')" type="button" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form asp-page="./ChangePassword" method="post" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+                <input type="password" name="OldPassword" required 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       placeholder="Enter current password" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+                <input type="password" name="NewPassword" required 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       placeholder="Enter new password" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+                <input type="password" name="ConfirmPassword" required 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       placeholder="Confirm new password" />
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModal('passwordModal')" 
+                        class="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                    Save Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for endre telefonnummer -->
+<div id="phoneModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Change Phone Number</h2>
+            <button onclick="closeModal('phoneModal')" type="button" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form method="post" class="space-y-4">
+            <div>
+                <label asp-for="Input.PhoneNumber" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                <input asp-for="Input.PhoneNumber" 
+                       class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" 
+                       placeholder="Enter phone number" />
+                <span asp-validation-for="Input.PhoneNumber" class="text-red-600 text-xs font-medium"></span>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModal('phoneModal')" 
+                        class="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg">
+                    Save Phone Number
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for personlig data -->
+<div id="personalDataModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 transform transition-all">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Personal Data Management</h2>
+            <button onclick="closeModal('personalDataModal')" type="button" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <p class="text-gray-600">Choose how you want to manage your personal data:</p>
+            
+            <div class="space-y-3">
+                <a asp-page="./DownloadPersonalData" 
+                   class="block w-full px-4 py-3 bg-blue-50 border-2 border-blue-200 text-blue-700 font-medium rounded-xl hover:bg-blue-100 transition-all text-center">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Your Data
+                </a>
+                
+                <a asp-page="./DeletePersonalData" 
+                   class="block w-full px-4 py-3 bg-red-50 border-2 border-red-200 text-red-700 font-medium rounded-xl hover:bg-red-100 transition-all text-center">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Your Account
+                </a>
+            </div>
+            
+            <button type="button" onclick="closeModal('personalDataModal')" 
+                    class="w-full px-4 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Copilot: Unified modal management system
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+    }
+    
+    // Close modal on outside click
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            closeModal(e.target.id);
+        }
+    });
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
