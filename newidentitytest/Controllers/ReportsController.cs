@@ -244,6 +244,8 @@ namespace newidentitytest.Controllers
 
             _db.Notifications.Add(notification);
             await _db.SaveChangesAsync();
+        }
+
         [HttpPost]
         [Authorize(Roles = "Registrar")]
         [ValidateAntiForgeryToken]
