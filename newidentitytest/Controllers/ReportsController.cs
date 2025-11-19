@@ -28,15 +28,18 @@ namespace newidentitytest.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string sortBy = "CreatedAt", string sortOrder = "desc", string search = "")
         {
-            // Build query
+            // Build query with joins to get user and organization info
             var query = from r in _db.Reports
-                        join u in _db.Users on r.UserId equals u.Id into gj
-                        from u in gj.DefaultIfEmpty()
+                        join u in _db.Users on r.UserId equals u.Id into userJoin
+                        from u in userJoin.DefaultIfEmpty()
+                        join o in _db.Organizations on u.OrganizationId equals o.Id into orgJoin
+                        from o in orgJoin.DefaultIfEmpty()
                         select new ReportListItem
                         {
                             Id = r.Id,
                             CreatedAt = r.CreatedAt,
                             Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
+                            OrganizationName = o != null ? o.Name : null,
                             ObstacleType = r.ObstacleType,
                             Status = r.Status,
                             ObstacleLocation = r.ObstacleLocation
@@ -67,6 +70,7 @@ namespace newidentitytest.Controllers
                 items = items.Where(r =>
                     r.Id.ToString().Contains(searchLower) ||
                     (r.Sender ?? string.Empty).ToLowerInvariant().Contains(searchLower) ||
+                    (r.OrganizationName ?? string.Empty).ToLowerInvariant().Contains(searchLower) ||
                     ((r.ObstacleType ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
                     r.CreatedAt.ToString("MMM dd, yyyy").ToLowerInvariant().Contains(searchLower) ||
                     ((r.Status ?? string.Empty).ToLowerInvariant().Contains(searchLower))
@@ -244,6 +248,8 @@ namespace newidentitytest.Controllers
 
             _db.Notifications.Add(notification);
             await _db.SaveChangesAsync();
+        }
+
         [HttpPost]
         [Authorize(Roles = "Registrar")]
         [ValidateAntiForgeryToken]

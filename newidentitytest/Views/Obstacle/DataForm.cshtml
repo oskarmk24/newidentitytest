@@ -481,7 +481,7 @@
         });
 
         map.on('locationerror', function () {
-            alert('Kunne ikke hente posisjonen din.');
+            alert('Could not retrieve your location.');
         });
 
         // Holder referanse til markøren + skjult input
@@ -553,7 +553,7 @@
             };
             hidden.value = JSON.stringify(payload);
             if (hint) {
-                hint.textContent = "Valgt: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
+                hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
 
             // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
@@ -577,7 +577,7 @@
             var coords = points.map(function (p) { return [Number(p[1].toFixed(6)), Number(p[0].toFixed(6))]; });
             var payload = { type: "LineString", coordinates: coords };
             hidden.value = JSON.stringify(payload);
-            if (hint) { hint.textContent = 'Linje med ' + points.length + ' punkter.'; }
+            if (hint) { hint.textContent = 'Line with ' + points.length + ' points.'; }
             
             // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
             if (formSection && formSection.style.display === 'none') {
@@ -652,7 +652,7 @@
                         // Vis popup hvis linjen er låst
                         showLocationWarningPopup(
                             e.latlng,
-                            '<div style="text-align: center; padding: 5px;"><strong>Linjen er allerede lagret!</strong><br>Trykk "Slett" for å starte på nytt.</div>'
+                            '<div style="text-align: center; padding: 5px;"><strong>The line is already saved!</strong><br>Click "Clear" to start over.</div>'
                         );
                         return;
                     }
@@ -957,12 +957,12 @@
                         if (linePoints.length >= 2) {
                             setLocationLine(linePoints);
                             lineLocked = true;
-                            if (hint) hint.textContent = 'Linje lagret. Du kan sende inn skjemaet eller trykke Slett for å redigere.';
+                            if (hint) hint.textContent = 'Line saved. You can submit the form or click Clear to edit.';
                         } else {
-                            if (hint) hint.textContent = 'Legg til minst 2 punkter for å fullføre en linje.';
+                            if (hint) hint.textContent = 'Add at least 2 points to complete a line.';
                         }
                     } else {
-                        if (hint) hint.textContent = 'Bytt til Linje-modus for å tegne en linje.';
+                        if (hint) hint.textContent = 'Switch to Line mode to draw a line.';
                     }
                 });
                 
@@ -975,7 +975,7 @@
                     if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
                     linePoints = [];
                     hidden.value = '';
-                    if (hint) hint.textContent = (drawMode === 'line') ? 'Linje-modus: klikk for å legge til punkter.' : 'Klikk på kartet for å plassere en markør.';
+                    if (hint) hint.textContent = (drawMode === 'line') ? 'Line mode: click to add points.' : 'Click on the map to place a marker.';
                     lineLocked = false;
                 });
 
@@ -999,13 +999,13 @@
                 if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
                 if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
                 hidden.value = '';
-                if (hint) hint.textContent = 'Klikk på kartet for å plassere en markør.';
+                if (hint) hint.textContent = 'Click on the map to place a marker.';
                 lineLocked = false;
             } else {
                 // Fjern punkt-markør når vi bytter til linjemodus
                 if (marker) { map.removeLayer(marker); marker = null; }
                 hidden.value = '';
-                if (hint) hint.textContent = 'Linje-modus: klikk for å legge til punkter.';
+                if (hint) hint.textContent = 'Line mode: click to add points.';
                 lineLocked = false;
             }
         }
@@ -1265,6 +1265,97 @@
             if (minimizeIcon) minimizeIcon.style.display = 'none';
             if (maximizeIcon) maximizeIcon.style.display = 'block';
         }
+
+        // Load existing ObstacleLocation if editing a draft
+        (function() {
+            var existingLocation = @Html.Raw(Json.Serialize(Model?.ObstacleLocation ?? ""));
+            
+            if (existingLocation && typeof existingLocation === 'string' && existingLocation.trim() !== '') {
+                try {
+                    var geo = JSON.parse(existingLocation);
+                    
+                    if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates) && geo.coordinates.length >= 2) {
+                        // Convert from [lng, lat] to [lat, lng] for Leaflet
+                        var latlngs = geo.coordinates.map(function(c) { 
+                            return [c[1], c[0]]; 
+                        });
+                        
+                        // Set line mode
+                        setMode('line');
+                        if (modeLine) modeLine.click();
+                        
+                        // Restore line points
+                        linePoints = latlngs;
+                        lineLocked = true;
+                        
+                        // Draw the polyline
+                        polyline = L.polyline(latlngs, { 
+                            color: '#dc2626', 
+                            weight: 4 * getScaleForZoom(map.getZoom()), 
+                            opacity: 0.8, 
+                            lineCap: 'butt' 
+                        }).addTo(map);
+                        
+                        // Add start/end markers
+                        if (latlngs.length > 0) {
+                            startCircle = L.circleMarker(latlngs[0], {
+                                radius: 4 * getScaleForZoom(map.getZoom()),
+                                fillColor: '#10b981',
+                                color: '#ffffff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            }).addTo(map);
+                            
+                            endCircle = L.circleMarker(latlngs[latlngs.length - 1], {
+                                radius: 4 * getScaleForZoom(map.getZoom()),
+                                fillColor: '#ef4444',
+                                color: '#ffffff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            }).addTo(map);
+                        }
+                        
+                        // Fit map to show the line
+                        if (polyline) {
+                            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                        }
+                        
+                        // Update hint
+                        if (hint) {
+                            hint.textContent = 'Linje med ' + latlngs.length + ' punkter (lastet fra draft).';
+                        }
+                        
+                        // Show form section
+                        if (formSection) {
+                            formSection.style.display = 'block';
+                        }
+                    } else if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates) && geo.coordinates.length >= 2) {
+                        // Handle Point type
+                        var lat = geo.coordinates[1];
+                        var lng = geo.coordinates[0];
+                        
+                        // Set point mode
+                        setMode('point');
+                        if (modePoint) modePoint.click();
+                        
+                        // Place marker
+                        placeOrMoveMarker([lat, lng]);
+                        
+                        // Center map on point
+                        map.setView([lat, lng], 15);
+                        
+                        // Show form section
+                        if (formSection) {
+                            formSection.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not parse existing ObstacleLocation:', e);
+                }
+            }
+        })();
 
     </script>
 }

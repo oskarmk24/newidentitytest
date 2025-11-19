@@ -10,9 +10,9 @@ namespace newidentitytest.Controllers
 {
     /// <summary>
     /// Controller for managing users, including assigning them to organizations and roles.
-    /// Requires Admin role to access.
+    /// Requires Admin or Registrar role to access.
     /// </summary>
-    [Authorize(Roles = "Admin")] // Only admins can manage users
+    [Authorize(Roles = "Admin,Registrar")] // Admins and Registrars can manage users
     public class UserManagementController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

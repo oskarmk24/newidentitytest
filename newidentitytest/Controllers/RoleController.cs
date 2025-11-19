@@ -8,9 +8,9 @@ namespace newidentitytest.Controllers
 {
     /// <summary>
     /// Controller for managing roles.
-    /// Requires Admin role to access.
+    /// Requires Admin or Registrar role to access.
     /// </summary>
-    [Authorize(Roles = "Admin")] // Only admins can manage roles
+    [Authorize(Roles = "Admin,Registrar")] // Admins and Registrars can manage roles
     public class RoleController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;
