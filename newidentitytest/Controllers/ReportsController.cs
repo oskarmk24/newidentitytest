@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using newidentitytest.Data;
 using newidentitytest.Models;
 
@@ -131,6 +132,9 @@ namespace newidentitytest.Controllers
 
             await _db.SaveChangesAsync();
 
+            // Create notification for pilot
+            await CreateNotificationForPilotAsync(report, "Approved", null);
+
             TempData["SuccessMessage"] = "Report approved.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -165,8 +169,53 @@ namespace newidentitytest.Controllers
 
             await _db.SaveChangesAsync();
 
+            // Create notification for pilot
+            await CreateNotificationForPilotAsync(report, "Rejected", rejectionReason);
+
             TempData["SuccessMessage"] = "Report rejected.";
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        /// <summary>
+        /// Creates a notification for the pilot when their report is processed
+        /// </summary>
+        private async Task CreateNotificationForPilotAsync(Report report, string status, string? rejectionReason)
+        {
+            if (string.IsNullOrEmpty(report.UserId))
+                return;
+
+            // Get the name of the registrar/admin who processed the report
+            var registrarName = "en registerfører";
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                var registrar = await _db.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+                if (registrar != null)
+                {
+                    registrarName = registrar.Email ?? registrar.UserName ?? "en registerfører";
+                }
+            }
+
+            var title = status == "Approved" 
+                ? $"Rapport #{report.Id} godkjent" 
+                : $"Rapport #{report.Id} avvist";
+
+            var message = status == "Approved"
+                ? $"Din rapport #{report.Id} har blitt godkjent av {registrarName}."
+                : $"Din rapport #{report.Id} har blitt avvist av {registrarName}. Årsak: {rejectionReason}";
+
+            var notification = new Notification
+            {
+                UserId = report.UserId,
+                ReportId = report.Id,
+                Title = title,
+                Message = message,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Notifications.Add(notification);
+            await _db.SaveChangesAsync();
         }
     }
 

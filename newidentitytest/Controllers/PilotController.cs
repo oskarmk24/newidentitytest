@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using newidentitytest.Data;
+using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {
@@ -57,6 +58,15 @@ namespace newidentitytest.Controllers
 
 			ViewBag.SystemStatus = isSystemHealthy ? "Active" : "Degraded";
 			ViewBag.SystemStatusColor = isSystemHealthy ? "green" : "red";
+
+			// Get unread notifications
+			var unreadNotifications = await _db.Notifications
+				.Where(n => n.UserId == userId && !n.IsRead)
+				.OrderByDescending(n => n.CreatedAt)
+				.Take(10)
+				.ToListAsync();
+			ViewBag.UnreadNotifications = unreadNotifications;
+			ViewBag.UnreadNotificationsCount = unreadNotifications.Count;
 
 			return View();
 		}
@@ -116,6 +126,55 @@ namespace newidentitytest.Controllers
 			ViewBag.Search = search;
 
 			return View(items);
+		}
+
+		// Mark notification as read
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> MarkNotificationAsRead(int id)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Forbid();
+			}
+
+			var notification = await _db.Notifications
+				.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+
+			if (notification != null && !notification.IsRead)
+			{
+				notification.IsRead = true;
+				notification.ReadAt = DateTime.UtcNow;
+				await _db.SaveChangesAsync();
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+
+		// Mark all notifications as read
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> MarkAllNotificationsAsRead()
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Forbid();
+			}
+
+			var unreadNotifications = await _db.Notifications
+				.Where(n => n.UserId == userId && !n.IsRead)
+				.ToListAsync();
+
+			foreach (var notification in unreadNotifications)
+			{
+				notification.IsRead = true;
+				notification.ReadAt = DateTime.UtcNow;
+			}
+
+			await _db.SaveChangesAsync();
+			return RedirectToAction(nameof(Index));
 		}
 	}
 }

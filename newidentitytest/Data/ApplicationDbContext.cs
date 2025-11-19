@@ -16,6 +16,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     // ADDED: Organizations DbSet to support organization management
     public DbSet<Organization> Organizations { get; set; } = null!;
+    
+    // ADDED: Notifications DbSet for in-app notifications
+    public DbSet<Notification> Notifications { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -85,6 +88,45 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
             entity.HasIndex(r => r.UserId)
                   .HasDatabaseName("IX_reports_UserId");
+        });
+
+        // ADDED: Configure Notification entity
+        builder.Entity<Notification>(entity =>
+        {
+            entity.ToTable("notifications");
+
+            entity.HasKey(n => n.Id);
+
+            entity.Property(n => n.UserId)
+                  .IsRequired()
+                  .HasMaxLength(255);
+
+            entity.Property(n => n.ReportId)
+                  .IsRequired();
+
+            entity.Property(n => n.Title)
+                  .IsRequired()
+                  .HasMaxLength(200);
+
+            entity.Property(n => n.Message)
+                  .HasColumnType("text");
+
+            entity.Property(n => n.IsRead)
+                  .IsRequired()
+                  .HasDefaultValue(false);
+
+            entity.Property(n => n.CreatedAt)
+                  .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                  .ValueGeneratedOnAdd();
+
+            entity.HasIndex(n => n.UserId)
+                  .HasDatabaseName("IX_notifications_UserId");
+
+            entity.HasIndex(n => n.ReportId)
+                  .HasDatabaseName("IX_notifications_ReportId");
+
+            entity.HasIndex(n => new { n.UserId, n.IsRead })
+                  .HasDatabaseName("IX_notifications_UserId_IsRead");
         });
     }
 }
