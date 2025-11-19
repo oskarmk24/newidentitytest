@@ -138,8 +138,8 @@ namespace newidentitytest.Areas.Identity.Pages.Account
 
                         var roles = await _userManager.GetRolesAsync(user);
 
-                        // Admin -> Home/Index
-                        if (roles.Contains("Admin"))
+                        // Admin or Registrar -> Home/Index
+                        if (roles.Contains("Admin") || roles.Contains("Registrar"))
                         {
                             return LocalRedirect(Url.Content("~/Home/Index"));
                         }
@@ -154,6 +154,12 @@ namespace newidentitytest.Areas.Identity.Pages.Account
                         if (roles.Contains("Registrar"))
                         {
                             return LocalRedirect(Url.Content("~/Registrar/Index"));
+                        }
+
+                        // OrganizationManager -> OrganizationManager/Index
+                        if (roles.Contains("OrganizationManager"))
+                        {
+                            return LocalRedirect(Url.Content("~/OrganizationManager/Index"));
                         }
 
                         return LocalRedirect(returnUrl);

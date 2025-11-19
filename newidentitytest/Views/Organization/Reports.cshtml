@@ -1,0 +1,151 @@
+@model IEnumerable<newidentitytest.Models.ReportListItem>
+@{
+    ViewData["Title"] = "Organization Reports";
+    var organization = ViewBag.Organization as newidentitytest.Models.Organization;
+    var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
+    var sortOrder = ViewBag.SortOrder as string ?? "desc";
+    var search = ViewBag.Search as string ?? "";
+}
+
+<section class="container mx-auto py-8">
+    <header class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold">Reports from @(organization?.Name ?? "Organization")</h1>
+            <p class="text-gray-600 mt-1">All reports submitted by members of this organization</p>
+        </div>
+        <a asp-action="Details" asp-route-id="@organization?.Id" class="inline-flex items-center rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Back to Organization</a>
+    </header>
+
+    <div class="mb-4">
+        @* Server-side search form *@
+        <form method="get" action="@Url.Action("Reports", new { id = organization?.Id })" class="flex items-center gap-2">
+            <input type="text" name="search" value="@search" placeholder="Search..." 
+                   class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
+            <input type="hidden" name="sortBy" value="@sortBy" />
+            <input type="hidden" name="sortOrder" value="@sortOrder" />
+            <button type="submit" class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
+                Search
+            </button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a href="@Url.Action("Reports", new { id = organization?.Id, sortBy = sortBy, sortOrder = sortOrder })" 
+                   class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
+                    Clear
+                </a>
+            }
+        </form>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-left text-gray-600">
+                <tr>
+                    @{
+                        string GetSortUrl(string column)
+                        {
+                            var newSortOrder = (sortBy == column && sortOrder == "asc") ? "desc" : "asc";
+                            return Url.Action("Reports", new { id = organization?.Id, sortBy = column, sortOrder = newSortOrder, search = search });
+                        }
+                        
+                        string GetSortIcon(string column)
+                        {
+                            if (sortBy == column)
+                            {
+                                return sortOrder == "asc" ? "↑" : "↓";
+                            }
+                            return "⇅";
+                        }
+                    }
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("id")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Report ID <span class="text-gray-600">@GetSortIcon("id")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("createdat")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Submission Date <span class="text-gray-600">@GetSortIcon("createdat")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("sender")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Reporter <span class="text-gray-600">@GetSortIcon("sender")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("obstacletype")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Obstacle Type <span class="text-gray-600">@GetSortIcon("obstacletype")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("status")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Status <span class="text-gray-600">@GetSortIcon("status")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">Location</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (Model.Any())
+                {
+                    @foreach (var r in Model)
+                    {
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <a asp-controller="Reports" asp-action="Details" asp-route-id="@r.Id" class="text-indigo-700 hover:underline">@r.Id</a>
+                            </td>
+                            <td class="px-4 py-3">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="px-4 py-3">@r.Sender</td>
+                            <td class="px-4 py-3">@(r.ObstacleType ?? "-")</td>
+                            <td class="px-4 py-3">
+                                @{
+                                    var status = r.Status ?? "Pending";
+                                    var statusClass = status.ToLowerInvariant() switch
+                                    {
+                                        "approved" => "bg-green-100 text-green-800",
+                                        "rejected" => "bg-red-100 text-red-800",
+                                        _ => "bg-yellow-100 text-yellow-800"
+                                    };
+                                }
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium @statusClass">
+                                    @status
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                @{
+                                    if (!string.IsNullOrWhiteSpace(r.ObstacleLocation))
+                                    {
+                                        try
+                                        {
+                                            var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(r.ObstacleLocation);
+                                            var coordinates = geo.GetProperty("coordinates");
+                                            var lng = coordinates[0].GetDecimal();
+                                            var lat = coordinates[1].GetDecimal();
+                                            <text>Lat: @lat, Lng: @lng</text>
+                                        }
+                                        catch
+                                        {
+                                            <text>-</text>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            No reports found for this organization.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+

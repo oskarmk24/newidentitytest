@@ -32,76 +32,28 @@
                 Digital Obstacle Report
             </a>
 
-            <!-- Mobile menu button -->
-            <button id="navToggle"
-                    class="inline-flex items-center justify-center rounded-md p-2 ring-1 ring-gray-300 hover:bg-gray-100 md:hidden"
-                    aria-controls="primaryNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
+            @{
+                // Check if we're on Identity Account pages (Login/Register) and user is not authenticated
+                var isIdentityAccountPage = ViewContext.RouteData.Values["area"]?.ToString() == "Identity" 
+                    && ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Account/") == true;
+                var showNavLinks = !isIdentityAccountPage || User.Identity?.IsAuthenticated == true;
+            }
 
-            <!-- Left links + Login/Register -->
+            <!-- Identity login/register block -->
             <div class="flex items-center gap-6">
-                <div id="primaryNav" class="hidden w-full md:w-auto md:flex md:items-center md:gap-6">
-                    <ul class="mt-3 flex flex-col gap-2 md:mt-0 md:flex-row md:items-center">
-                        <li>
-                            <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                               asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li>
-                            <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                               asp-area="" asp-controller="Reports" asp-action="Index">Reports</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Pilot"))
-                        {
-                            <li>
-                                <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                   asp-area="" asp-controller="Obstacle" asp-action="Drafts">My Drafts</a>
-                            </li>
-                        }
-                        <li>
-                            <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                               asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                            {
-                                <li>
-                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                       asp-area="" asp-controller="Organization" asp-action="Index">Organizations</a>
-                                </li>
-                            }
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li>
-                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                       asp-area="" asp-controller="Role" asp-action="Index">Roles</a>
-                                </li>
-                                <li>
-                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                       asp-area="" asp-controller="UserManagement" asp-action="Index">Users</a>
-                                </li>
-                            }
-                        }
-                    </ul>
-                </div>
-
-                <!-- Identity login/register block -->
                 <div class="hidden md:block">
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
 
-        <!-- Show login/register also when mobile menu is open -->
-        <div class="container md:hidden mt-2">
-            <partial name="_LoginPartial" />
-        </div>
+        <!-- Show login/register also on mobile -->
+        @if (showNavLinks)
+        {
+            <div class="container md:hidden mt-2">
+                <partial name="_LoginPartial" />
+            </div>
+        }
     </header>
 
     <!-- Main -->
@@ -123,18 +75,6 @@
     </footer>
 
     <!-- Scripts -->
-    <script>
-        // Simple mobile nav toggle
-        const navToggle = document.getElementById('navToggle');
-        const primaryNav = document.getElementById('primaryNav');
-        if (navToggle && primaryNav) {
-          navToggle.addEventListener('click', () => {
-            const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-            navToggle.setAttribute('aria-expanded', String(!expanded));
-            primaryNav.classList.toggle('hidden');
-          });
-        }
-    </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

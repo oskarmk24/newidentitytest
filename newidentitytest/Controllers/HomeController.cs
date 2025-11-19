@@ -41,14 +41,20 @@ namespace newidentitytest.Controllers
                 return RedirectToAction("Index", "Registrar");
             }
             
+            // Redirect organization managers to their landing page
+            if (User.IsInRole("OrganizationManager"))
+            {
+                return RedirectToAction("Index", "OrganizationManager");
+            }
+            
             // Redirect pilots to their landing page
             if (User.IsInRole("Pilot"))
             {
                 return RedirectToAction("Index", "Pilot");
             }
             
-            // Redirect non-admin users to the obstacle form
-            if (!User.IsInRole("Admin"))
+            // Redirect non-admin and non-registrar users to the obstacle form
+            if (!User.IsInRole("Admin") && !User.IsInRole("Registrar"))
             {
                 return RedirectToAction("DataForm", "Obstacle");
             }

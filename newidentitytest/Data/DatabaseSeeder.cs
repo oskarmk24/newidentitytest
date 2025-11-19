@@ -15,7 +15,7 @@ public static class DatabaseSeeder
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
         
         // Create roles if they don't exist
-        string[] roles = { "Admin", "Registrar", "Pilot" };
+        string[] roles = { "Admin", "Registrar", "Pilot", "OrganizationManager" };
         foreach (var roleName in roles)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -252,6 +252,50 @@ public static class DatabaseSeeder
                 await userManager.UpdateAsync(existingUser);
                 await userManager.AddToRoleAsync(existingUser, "Pilot");
                 Console.WriteLine($"Pilot role assigned to existing user: {userData.Email}");
+            }
+        }
+
+        // Create OrganizationManager users (one per organization)
+        var organizationManagers = new[]
+        {
+            new { Email = "manager@kartverket.no", Password = "Manager123!", Organization = kartverket },
+            new { Email = "manager@nla.no", Password = "Manager123!", Organization = nla },
+            new { Email = "manager@luftforsvaret.no", Password = "Manager123!", Organization = luftforsvaret },
+            new { Email = "manager@politiet.no", Password = "Manager123!", Organization = politiet }
+        };
+
+        foreach (var userData in organizationManagers)
+        {
+            if (userData.Organization == null) continue;
+            
+            var existingUser = await userManager.FindByEmailAsync(userData.Email);
+            if (existingUser == null)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = userData.Email,
+                    Email = userData.Email,
+                    EmailConfirmed = true,
+                    OrganizationId = userData.Organization.Id
+                };
+
+                var result = await userManager.CreateAsync(user, userData.Password);
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(user, "OrganizationManager");
+                    Console.WriteLine($"OrganizationManager user created: {userData.Email}");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to create OrganizationManager user {userData.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+            }
+            else if (!await userManager.IsInRoleAsync(existingUser, "OrganizationManager"))
+            {
+                existingUser.OrganizationId = userData.Organization.Id;
+                await userManager.UpdateAsync(existingUser);
+                await userManager.AddToRoleAsync(existingUser, "OrganizationManager");
+                Console.WriteLine($"OrganizationManager role assigned to existing user: {userData.Email}");
             }
         }
     }
