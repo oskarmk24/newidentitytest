@@ -1,3 +1,7 @@
+@* 
+    Organization Manager dashboard displaying statistics for their organization.
+    Shows total, pending, approved, and rejected reports submitted by organization members.
+*@
 @{
     ViewData["Title"] = "Organization Dashboard";
     var organization = ViewBag.Organization as newidentitytest.Models.Organization;
@@ -8,13 +12,13 @@
 }
 
 <section class="container mx-auto py-12">
-    <!-- Welcome Header -->
+    @* Welcome header with organization name *@
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 mb-3">Organization Dashboard</h1>
         <p class="text-xl text-gray-600">@(organization?.Name ?? "Organization")</p>
     </div>
 
-    <!-- Stats Cards -->
+    @* Statistics cards showing report counts by status *@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
             <div class="flex items-center justify-between">
@@ -73,7 +77,7 @@
         </div>
     </div>
 
-    <!-- Navigation Button -->
+    @* Navigation card to view all organization reports *@
     <div class="max-w-2xl mx-auto">
         <a asp-controller="Organization" asp-action="Reports" asp-route-id="@organization?.Id" 
            class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-indigo-500 hover:shadow-md transition-all duration-200 block">

@@ -60,14 +60,14 @@ OrganizationManager:
                 - Kartskjema støtter punkt og linje.
                 - Piloter kan lagre rapporter som utkast.
 - Behandling av rapporter:
-                - Registerfører kan godkjenne/avslå rapporter.
+                - Registerfører kan godkjenne/avslå/slette rapporter.
                 - Registerfører kan tildele rapporter til andre registerførere.
                 - Rapporter har status-visning (pending, approved, rejected, draft)
 - Organisasjoner:
-                - Brukere kan meldes inn i organisasjoner.
+                - Brukere kan meldes inn i organisasjoner av registerørere/admin.
                 - Organisasjonsledere kan logge inn og få oversikt over rapporter meldt inn av deres besetning.
 - Notifikasjoner:
-                - Piloter mottar varsel på dashbord hvis innsendt rapport har blitt behandlet.
+                - Piloter mottar varsel på dashbord når innsendt rapport har blitt behandlet og hvem som har behandlet den.
 - Oversikt over hinder:
                 - Piloter og registerførere kan åpne kartet for å se godkjente hinder.
 
@@ -216,7 +216,7 @@ Scenario 4: Rapportbehandling
   1. Logg inn som registerfører
   2. Se liste over pending rapporter
   3. Åpne rapportdetaljer
-  4. Godkjenn eller avslå med begrunnelse
+  4. Godkjenn/avslå med begrunnelse eller slett rapporten
 - Forventet resultat: Rapportstatus oppdateres, notifikasjon sendes til pilot
 - Faktisk resultat: Fungerer som forventet
 
@@ -253,3 +253,47 @@ Scenario 6: Organisasjonsoppsett
 - **SQL Injection-beskyttelse**: Entity Framework Core parameteriserte queries
 - **XSS-beskyttelse**: Automatisk HTML-encoding i Razor Views
 - **HTTPS**: HTTPS-redirection i produksjon med HSTS
+
+### Sikkerhetstesting
+
+#### Test 1: CSRF-beskyttelse
+- **Beskrivelse**: Verifiserer at alle POST-endepunkter krever gyldig anti-forgery token
+- **Testmetode**: 
+  - Sendt POST-forespørsel via browser console uten `__RequestVerificationToken`:ascript
+    fetch('/Obstacle/DataForm', {
+      method: 'POST',
+      body: JSON.stringify({ObstacleType: 'Point'}),
+      headers: {'Content-Type': 'application/json'}
+    })
+    - **Forventet resultat**: Forespørsel avvises med 400 Bad Request
+- **Faktisk resultat**: Fungerer som forventet - mottok `400 (Bad Request)` når token manglet
+
+
+#### Test 2: XSS-beskyttelse
+- **Beskrivelse**: Verifiserer at brukerinput ikke kan injisere skadelig JavaScript
+- **Testmetode**: 
+  - Lagt inn `<script>alert('XSS Test')</script>` i beskrivelsesfeltet ved opprettelse av rapport
+  - Sendt inn rapporten og åpnet den for visning
+- **Forventet resultat**: Input blir automatisk HTML-encoded av Razor Views, vises som tekst
+- **Faktisk resultat**: Fungerer som forventet - script-taggen vises som ren tekst (`<script>alert('XSS Test')</script>`), ingen alert-dialog ble vist
+
+
+#### Test 3: SQL Injection-beskyttelse
+- **Beskrivelse**: Verifiserer at database-spørringer er parameteriserte
+- **Testmetode**: 
+  - Lagt inn `'; DROP TABLE reports;` i beskrivelsesfeltet ved opprettelse av rapport
+  - Sendt inn rapporten og verifisert i database
+- **Forventet resultat**: Entity Framework Core bruker parameteriserte queries automatisk, SQL-kode behandles som tekst
+- **Faktisk resultat**: Fungerer som forventet - SQL-koden vises som ren tekst, ingen tabeller ble påvirket, alle rapporter er fortsatt til stede
+
+
+#### Test 4: Autorisasjon og tilgangskontroll
+
+**Test 4a: Rollebasert tilgang**
+- **Beskrivelse**: Verifiserer at brukere kun kan aksessere ressurser de har tilgang til
+- **Testmetode**: 
+  - Logget inn som Pilot (`pilot.nla1@nla.no`)
+  - Forsøkt å aksessere Registrar-endepunkter direkte via URL
+- **Forventet resultat**: Pilot får 403 Forbidden ved forsøk på Registrar-funksjoner
+- **Faktisk resultat**: Fungerer som forventet - mottok "Access denied - You do not have access to this resource"
+

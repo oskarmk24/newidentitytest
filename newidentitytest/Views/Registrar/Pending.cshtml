@@ -1,3 +1,7 @@
+@* 
+    Pending reports listing page for registrars.
+    Displays all reports with "Pending" status with sorting, search, and quick approve/reject actions.
+*@
 @model IEnumerable<newidentitytest.Models.ReportListItem>
 @{
     ViewData["Title"] = "Pending Reports";
@@ -13,7 +17,7 @@
     </header>
 
     <div class="mb-4">
-        @* Server-side search form *@
+        @* Server-side search form with sort parameter preservation *@
         <form method="get" action="@Url.Action("Pending")" class="flex items-center gap-2">
             <input type="text" name="search" value="@search" placeholder="Search..." 
                    class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
@@ -126,7 +130,7 @@
         </table>
     </div>
 
-    <!-- Reject modal -->
+    @* Rejection modal dialog for entering rejection reason *@
     <div id="registrarRejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
             <form id="registrarRejectForm" asp-controller="Reports" asp-action="Reject" method="post">

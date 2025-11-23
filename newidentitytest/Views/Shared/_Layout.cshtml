@@ -1,11 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@* 
+    Main layout template for the application.
+    Provides the HTML structure, navigation, and common scripts/styles used across all pages.
+    Includes responsive navigation that adapts based on authentication status and current page context.
+*@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Digital Obstacle Report</title>
 
-    <!-- Tailwind (CDN for quick start). For production, use a proper build pipeline. -->
+    @* Tailwind CSS via CDN - for production, use a proper build pipeline *@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -17,10 +22,10 @@
         }
     </script>
 
-    <!-- Your app/site styles -->
+    @* Application-specific stylesheets *@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <!-- If this was from the old project name, you can remove it; otherwise point to the correct styles file -->
     <link rel="stylesheet" href="~/newidentitytest.styles.css" asp-append-version="true" />
+    @* Leaflet map library styles for interactive maps *@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -33,13 +38,13 @@
             </a>
 
             @{
-                // Check if we're on Identity Account pages (Login/Register) and user is not authenticated
+                @* Determine if navigation links should be shown based on current page and authentication status *@
                 var isIdentityAccountPage = ViewContext.RouteData.Values["area"]?.ToString() == "Identity" 
                     && ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Account/") == true;
                 var showNavLinks = !isIdentityAccountPage || User.Identity?.IsAuthenticated == true;
             }
 
-            <!-- Identity login/register block -->
+            @* Identity login/register partial view *@
             <div class="flex items-center gap-6">
                 <div class="hidden md:block">
                     <partial name="_LoginPartial" />
@@ -47,7 +52,7 @@
             </div>
         </nav>
 
-        <!-- Show login/register also on mobile -->
+        @* Show login/register links on mobile devices when appropriate *@
         @if (showNavLinks)
         {
             <div class="container md:hidden mt-2">
@@ -56,14 +61,14 @@
         }
     </header>
 
-    <!-- Main -->
+    @* Main content area where individual view content is rendered *@
     <div class="container flex-1 w-full">
         <main role="main" class="py-6">
             @RenderBody()
         </main>
     </div>
 
-    <!-- Footer -->
+    @* Footer with copyright and privacy policy link *@
     <footer class="border-t bg-white text-sm text-gray-600">
         <div class="container py-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p>&copy; 2025 - Digital Obstacle Report</p>
@@ -74,10 +79,12 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
+    @* Common JavaScript libraries and scripts *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @* Leaflet map library for interactive maps *@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @* Optional scripts section for views that need additional JavaScript *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

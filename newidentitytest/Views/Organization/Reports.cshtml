@@ -1,3 +1,8 @@
+@* 
+    Organization reports listing page.
+    Displays all reports submitted by members of a specific organization.
+    Includes sorting, search, and location information.
+*@
 @model IEnumerable<newidentitytest.Models.ReportListItem>
 @{
     ViewData["Title"] = "Organization Reports";
@@ -17,7 +22,7 @@
     </header>
 
     <div class="mb-4">
-        @* Server-side search form *@
+        @* Server-side search form with sort parameter preservation *@
         <form method="get" action="@Url.Action("Reports", new { id = organization?.Id })" class="flex items-center gap-2">
             <input type="text" name="search" value="@search" placeholder="Search..." 
                    class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />

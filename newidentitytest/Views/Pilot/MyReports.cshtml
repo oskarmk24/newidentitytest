@@ -1,3 +1,7 @@
+@* 
+    Pilot's personal reports listing page.
+    Shows only reports submitted by the current pilot user with sorting and search functionality.
+*@
 @model IEnumerable<newidentitytest.Models.ReportListItem>
 @{
     ViewData["Title"] = "My Reports";
@@ -10,7 +14,7 @@
     <header class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-semibold">My Reports (@Model.Count())</h1>
         <div class="flex items-center gap-2">
-            @* Server-side search form *@
+            @* Server-side search form with sort parameter preservation *@
             <form method="get" action="@Url.Action("MyReports")" class="flex items-center gap-2">
                 <input type="text" name="search" value="@search" placeholder="Search..." 
                        class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
