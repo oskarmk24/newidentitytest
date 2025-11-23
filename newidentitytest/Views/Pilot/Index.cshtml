@@ -1,3 +1,7 @@
+@* 
+    Pilot dashboard displaying statistics, notifications, and navigation to key features.
+    Shows unread notifications, report counts, and quick access to registration, drafts, and reports.
+*@
 @{
     ViewData["Title"] = "Pilot Dashboard";
     var myReportsCount = ViewBag.MyReportsCount as int? ?? 0;
@@ -8,13 +12,13 @@
 }
 
 <section class="container mx-auto py-12">
-    <!-- Welcome Header -->
+    @* Welcome header for pilots *@
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome, Pilot</h1>
         <p class="text-xl text-gray-600">Manage your obstacle reports</p>
     </div>
 
-    <!-- Notifications Section -->
+    @* Unread notifications section with mark-as-read functionality *@
     @if (unreadCount > 0)
     {
         <div class="mb-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
@@ -67,7 +71,7 @@
         </div>
     }
 
-    <!-- Stats Cards -->
+    @* Statistics cards showing report counts and database status *@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
             <div class="flex items-center justify-between">
@@ -116,7 +120,7 @@
         </div>
     </div>
 
-    <!-- Navigation Buttons -->
+    @* Navigation cards to key pilot features *@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <!-- Register Report Button -->
         <a asp-controller="Obstacle" asp-action="DataForm" 

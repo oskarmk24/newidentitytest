@@ -7,15 +7,19 @@ using newidentitytest.Models;
 namespace newidentitytest.Controllers
 {
     /// <summary>
-    /// Controller for managing roles.
-    /// Requires Admin or Registrar role to access.
+    /// Controller for administrasjon av roller.
+    /// Støtter opprettelse, visning, sletting av roller og tildeling/fjerning av roller til brukere.
+    /// Krever Admin eller Registrar rolle for alle operasjoner.
     /// </summary>
-    [Authorize(Roles = "Admin,Registrar")] // Admins and Registrars can manage roles
+    [Authorize(Roles = "Admin,Registrar")]
     public class RoleController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        /// <summary>
+        /// Initialiserer controlleren med RoleManager og UserManager for rolle- og brukerhåndtering.
+        /// </summary>
         public RoleController(
             RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager)
@@ -24,20 +28,30 @@ namespace newidentitytest.Controllers
             _userManager = userManager;
         }
 
-        // GET: List all roles
+        /// <summary>
+        /// Viser liste over alle roller i systemet.
+        /// Sortert alfabetisk etter navn.
+        /// </summary>
         public IActionResult Index()
         {
             var roles = _roleManager.Roles.OrderBy(r => r.Name).ToList();
             return View(roles);
         }
 
-        // GET: Create role form
+        /// <summary>
+        /// Viser skjema for å opprette ny rolle.
+        /// </summary>
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Create role
+        /// <summary>
+        /// Oppretter en ny rolle basert på rolle-navn.
+        /// Validerer at rolle-navnet er oppgitt og ikke allerede eksisterer.
+        /// Viser feilmeldinger hvis validering feiler eller opprettelsen mislykkes.
+        /// Ved suksess: redirecter til Index med suksessmelding.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string roleName)
@@ -68,7 +82,10 @@ namespace newidentitytest.Controllers
             return View();
         }
 
-        // GET: View role details with users
+        /// <summary>
+        /// Viser detaljvisning av en spesifikk rolle inkludert alle brukere som har denne rollen.
+        /// Returnerer NotFound hvis rolle-ID er null eller rollen ikke finnes.
+        /// </summary>
         public async Task<IActionResult> Details(string? id)
         {
             if (id == null)
@@ -90,7 +107,11 @@ namespace newidentitytest.Controllers
             return View(role);
         }
 
-        // GET: Manage user roles
+        /// <summary>
+        /// Viser skjema for å administrere roller for en spesifikk bruker.
+        /// Viser brukerens nåværende roller og alle tilgjengelige roller i systemet.
+        /// Returnerer NotFound hvis brukeren ikke finnes.
+        /// </summary>
         public async Task<IActionResult> ManageUserRoles(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -111,7 +132,12 @@ namespace newidentitytest.Controllers
             return View();
         }
 
-        // POST: Assign role to user
+        /// <summary>
+        /// Tildeler en rolle til en bruker.
+        /// Sjekker at brukeren ikke allerede har rollen før tildeling.
+        /// Redirecter tilbake til ManageUserRoles med suksessmelding eller feilmelding.
+        /// Returnerer NotFound hvis brukeren ikke finnes.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignRole(string userId, string roleName)
@@ -138,7 +164,12 @@ namespace newidentitytest.Controllers
             return RedirectToAction(nameof(ManageUserRoles), new { userId });
         }
 
-        // POST: Remove role from user
+        /// <summary>
+        /// Fjerner en rolle fra en bruker.
+        /// Sjekker at brukeren har rollen før fjerning.
+        /// Redirecter tilbake til ManageUserRoles med suksessmelding eller feilmelding.
+        /// Returnerer NotFound hvis brukeren ikke finnes.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveRole(string userId, string roleName)
@@ -165,7 +196,11 @@ namespace newidentitytest.Controllers
             return RedirectToAction(nameof(ManageUserRoles), new { userId });
         }
 
-        // GET: Delete role confirmation
+        /// <summary>
+        /// Viser bekreftelsesside for sletting av rolle.
+        /// Inkluderer liste over alle brukere som har denne rollen for å vise konsekvenser av sletting.
+        /// Returnerer NotFound hvis rolle-ID er null eller rollen ikke finnes.
+        /// </summary>
         public async Task<IActionResult> Delete(string? id)
         {
             if (id == null)
@@ -185,7 +220,12 @@ namespace newidentitytest.Controllers
             return View(role);
         }
 
-        // POST: Delete role
+        /// <summary>
+        /// Sletter en rolle permanent fra systemet.
+        /// Sjekker at rollen ikke har brukere tildelt før sletting.
+        /// Hvis rollen har brukere, vises feilmelding og redirecter til Index.
+        /// Ved suksess: redirecter til Index med suksessmelding.
+        /// </summary>
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)

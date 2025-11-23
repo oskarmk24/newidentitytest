@@ -9,8 +9,9 @@ using System.Security.Claims;
 namespace newidentitytest.Controllers
 {
     /// <summary>
-    /// Controller for hjemmesiden. 
-    /// Viser startside, personvernside og feilside.
+    /// Controller for hjemmesiden.
+    /// Håndterer startsiden med rollebaserte redirects, personvernside og feilhåndtering.
+    /// Index() redirecter brukere til deres rolle-spesifikke dashboards eller tester databaseforbindelse for Admin/Registrar.
     /// </summary>
     public class HomeController : Controller
     {
@@ -18,7 +19,7 @@ namespace newidentitytest.Controllers
         private readonly ApplicationDbContext _context;
 
         /// <summary>
-        /// Injects ApplicationDbContext for database operations.
+        /// Injects ApplicationDbContext for database operations and logger for error tracking.
         /// </summary>
         public HomeController(ApplicationDbContext context, ILogger<HomeController> logger)
         {
@@ -27,11 +28,12 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Tester om vi klarer å koble til databasen. 
-        /// Viser en melding på forsiden om det gikk bra eller ikke.
+        /// Hovedstartsiden med rollebasert redirect-logikk.
+        /// Redirecter Registrar, OrganizationManager og Pilot til deres respektive dashboards.
+        /// Redirecter andre autentiserte brukere (som ikke er Admin/Registrar) til rapportskjemaet.
+        /// For Admin og Registrar som ikke blir redirectet, tester metoden databaseforbindelsen og viser resultat.
+        /// Krever autentisering via [Authorize] attributt.
         /// </summary>
-        
-        //Krever at brukeren er autentisert for å se siden.
         [Authorize]
         public async Task<IActionResult> Index()
         {
@@ -86,7 +88,8 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Viser personvernsiden.
+        /// Viser personvernsiden (Privacy Policy).
+        /// Tilgjengelig for alle brukere, krever ikke autentisering.
         /// </summary>
         public IActionResult Privacy()
         {
@@ -95,6 +98,7 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Viser feilsiden med informasjon om RequestId (nyttig for feilsøking).
+        /// ResponseCache er deaktivert for å sikre at feilinformasjon alltid er oppdatert.
         /// </summary>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

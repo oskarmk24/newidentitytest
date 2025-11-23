@@ -7,17 +7,34 @@ using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {
+    /// <summary>
+    /// Controller for organisasjonsledere (OrganizationManager).
+    /// Gir dashboard med statistikk over rapporter fra organisasjonens medlemmer.
+    /// Krever OrganizationManager-rolle. Hver organisasjonsleder kan kun se data fra sin egen organisasjon.
+    /// </summary>
     [Authorize(Roles = "OrganizationManager")]
     public class OrganizationManagerController : Controller
     {
         private readonly ApplicationDbContext _db;
 
+        /// <summary>
+        /// Initialiserer controlleren med ApplicationDbContext for databaseoperasjoner.
+        /// </summary>
         public OrganizationManagerController(ApplicationDbContext db)
         {
             _db = db;
         }
 
-        // GET: /OrganizationManager/Index
+        /// <summary>
+        /// Viser dashboard for organisasjonslederen med statistikk over rapporter fra organisasjonens medlemmer.
+        /// Henter organisasjonen som den innloggede brukeren tilhører og beregner:
+        /// - Totalt antall rapporter
+        /// - Antall ventende rapporter (Pending)
+        /// - Antall godkjente rapporter (Approved)
+        /// - Antall avslåtte rapporter (Rejected)
+        /// Returnerer Forbid hvis brukeren ikke har gyldig userId.
+        /// Returnerer NotFound hvis brukeren ikke tilhører en organisasjon eller organisasjonen ikke finnes.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -42,13 +59,13 @@ namespace newidentitytest.Controllers
                 return NotFound("Organization not found");
             }
 
-            // Get user IDs for this organization
+            // Hent alle bruker-IDer som tilhører denne organisasjonen
             var organizationUserIds = await _db.Users
                 .Where(u => u.OrganizationId == organization.Id)
                 .Select(u => u.Id)
                 .ToListAsync();
 
-            // Get statistics
+            // Beregn statistikk over rapporter fra organisasjonens medlemmer
             var totalReports = await _db.Reports
                 .Where(r => organizationUserIds.Contains(r.UserId))
                 .CountAsync();

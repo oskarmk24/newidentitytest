@@ -1,17 +1,22 @@
-﻿@model string
+﻿@* 
+    Admin home page dashboard.
+    Displays database connectivity status and provides navigation to key administrative functions:
+    Reports, Organizations, Roles, and User Management.
+*@
+@model string
 
 @{
     ViewData["Title"] = "Home Page";
 }
 
 <section class="container mx-auto py-12">
-    <!-- Welcome Header -->
+    @* Welcome header for administrators *@
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome, Administrator</h1>
         <p class="text-xl text-gray-600">Manage the obstacle reporting system</p>
     </div>
 
-    <!-- Database Status Card -->
+    @* Database connectivity status indicator *@
     @if (!string.IsNullOrWhiteSpace(Model))
     {
         <div class="max-w-md mx-auto mb-12">
@@ -31,9 +36,9 @@
         </div>
     }
 
-    <!-- Navigation Buttons -->
+    @* Navigation cards to key administrative sections *@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <!-- Reports Button -->
+        @* Reports management card *@
         <a asp-controller="Reports" asp-action="Index" 
            class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-indigo-500 hover:shadow-md transition-all duration-200">
             <div class="flex flex-col items-center text-center">
@@ -47,7 +52,7 @@
             </div>
         </a>
 
-        <!-- Organizations Button -->
+        @* Organizations management card *@
         <a asp-controller="Organization" asp-action="Index" 
            class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-purple-500 hover:shadow-md transition-all duration-200">
             <div class="flex flex-col items-center text-center">
@@ -61,7 +66,7 @@
             </div>
         </a>
 
-        <!-- Roles Button -->
+        @* Roles management card *@
         <a asp-controller="Role" asp-action="Index" 
            class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-teal-500 hover:shadow-md transition-all duration-200">
             <div class="flex flex-col items-center text-center">
@@ -75,7 +80,7 @@
             </div>
         </a>
 
-        <!-- Users Button -->
+        @* User management card *@
         <a asp-controller="UserManagement" asp-action="Index" 
            class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-cyan-500 hover:shadow-md transition-all duration-200">
             <div class="flex flex-col items-center text-center">

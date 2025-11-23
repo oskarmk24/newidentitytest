@@ -1,3 +1,8 @@
+@* 
+    Reports listing page with sorting and search functionality.
+    Displays all reports in a table with sortable columns and search capability.
+    Accessible to all authenticated users.
+*@
 @model IEnumerable<newidentitytest.Models.ReportListItem>
 @{
     ViewData["Title"] = "Reports";
@@ -10,7 +15,7 @@
     <header class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-semibold">Reports (@Model.Count())</h1>
         <div class="flex items-center gap-2">
-            @* Server-side search form *@
+            @* Server-side search form with sort parameter preservation *@
             <form method="get" action="@Url.Action("Index")" class="flex items-center gap-2">
                 <input type="text" name="search" value="@search" placeholder="Search..." 
                        class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
@@ -64,7 +69,9 @@
                         </a>
                     </th>
                     <th class="px-4 py-3">
-                        Organization
+                        <a href="@GetSortUrl("organizationname")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Organization <span class="text-gray-600">@GetSortIcon("organizationname")</span>
+                        </a>
                     </th>
                     <th class="px-4 py-3">
                         <a href="@GetSortUrl("obstacletype")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">

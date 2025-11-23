@@ -9,7 +9,13 @@ using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {
-    // Require a logged-in user to view reports (protects list + details)
+    /// <summary>
+    /// Controller for visning og behandling av rapporter.
+    /// Støtter visning av alle rapporter med sortering og søk, detaljvisning, godkjenning/avslag,
+    /// tildeling til registerførere og sletting av rapporter.
+    /// Krever autentisering for visning. Spesifikke operasjoner (Approve, Reject, Delete, AssignRegistrar)
+    /// krever Registrar eller Admin rolle.
+    /// </summary>
     [Authorize]
     public class ReportsController : Controller
     {
@@ -17,6 +23,9 @@ namespace newidentitytest.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        /// <summary>
+        /// Initialiserer controlleren med ApplicationDbContext og UserManager for databaseoperasjoner og brukerhåndtering.
+        /// </summary>
         public ReportsController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
         {
             // Store the injected DbContext for later queries
@@ -24,7 +33,13 @@ namespace newidentitytest.Controllers
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         }
 
-        // GET /Reports
+        /// <summary>
+        /// Viser liste over alle rapporter med sortering og søkefunksjonalitet.
+        /// Inkluderer informasjon om avsender og organisasjon via joins.
+        /// Støtter sortering etter: id, CreatedAt, Sender, ObstacleType, Status (standard: CreatedAt desc).
+        /// Støtter søk i: Id, Sender, OrganizationName, ObstacleType, CreatedAt (dato), Status.
+        /// Søkefilteret anvendes i minnet for å unngå EF Core oversettelsesproblemer med komplekse strengoperasjoner.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(string sortBy = "CreatedAt", string sortOrder = "desc", string search = "")
         {
@@ -56,6 +71,7 @@ namespace newidentitytest.Controllers
                 "id" => sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id),
                 "createdat" => sortOrder == "asc" ? query.OrderBy(r => r.CreatedAt) : query.OrderByDescending(r => r.CreatedAt),
                 "sender" => sortOrder == "asc" ? query.OrderBy(r => r.Sender) : query.OrderByDescending(r => r.Sender),
+                "organizationname" => sortOrder == "asc" ? query.OrderBy(r => r.OrganizationName ?? "") : query.OrderByDescending(r => r.OrganizationName ?? ""),
                 "obstacletype" => sortOrder == "asc" ? query.OrderBy(r => r.ObstacleType ?? "") : query.OrderByDescending(r => r.ObstacleType ?? ""),
                 "status" => sortOrder == "asc" ? query.OrderBy(r => r.Status) : query.OrderByDescending(r => r.Status),
                 _ => query.OrderByDescending(r => r.CreatedAt)
@@ -87,7 +103,11 @@ namespace newidentitytest.Controllers
             return View(items);
         }
 
-        // GET /api/reports
+        /// <summary>
+        /// API-endepunkt som returnerer alle rapporter som JSON.
+        /// Brukes av verktøy og diagnostikk. Returnerer rapporter sortert etter opprettelsesdato (nyeste først).
+        /// Krever autentisering (arver fra [Authorize] på controller-nivå).
+        /// </summary>
         [HttpGet("/api/reports")]
         public async Task<IActionResult> GetAll()
         {
@@ -99,7 +119,12 @@ namespace newidentitytest.Controllers
         }
 
 
-        // GET /Reports/Details/{id}
+        /// <summary>
+        /// Viser detaljvisning av en spesifikk rapport.
+        /// Inkluderer informasjon om avsender og tildelt registerfører.
+        /// Hvis brukeren har Registrar-rolle, lastes liste over tilgjengelige registerførere for tildeling.
+        /// Returnerer NotFound hvis rapporten ikke finnes.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -142,8 +167,11 @@ namespace newidentitytest.Controllers
             return View(vm);
         }
         /// <summary>
-        /// POST: Approve a report
-        /// Only accessible to users with Registrar or Admin role
+        /// Godkjenner en rapport og oppdaterer status til "Approved".
+        /// Krever Registrar eller Admin rolle.
+        /// Oppdaterer ProcessedAt til nåværende tid og nullstiller eventuell tidligere avslagsbegrunnelse.
+        /// Oppretter notifikasjon til piloten om at rapporten er godkjent.
+        /// Redirecter tilbake til Details med suksessmelding.
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Registrar,Admin")]
@@ -172,8 +200,12 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// POST: Reject a report with a reason
-        /// Only accessible to users with Registrar or Admin role
+        /// Avslår en rapport med begrunnelse og oppdaterer status til "Rejected".
+        /// Krever Registrar eller Admin rolle.
+        /// Validerer at avslagsbegrunnelse er oppgitt.
+        /// Oppdaterer ProcessedAt til nåværende tid og lagrer avslagsbegrunnelsen.
+        /// Oppretter notifikasjon til piloten om at rapporten er avslått med begrunnelse.
+        /// Redirecter tilbake til Details med suksessmelding eller feilmelding hvis begrunnelse mangler.
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Registrar,Admin")]
@@ -209,7 +241,11 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Creates a notification for the pilot when their report is processed
+        /// Oppretter en notifikasjon til piloten når deres rapport er behandlet (godkjent eller avslått).
+        /// Henter navnet på registerføreren/admin som behandlet rapporten.
+        /// Oppretter notifikasjon med passende tittel og melding basert på status.
+        /// Hvis rapporten er avslått, inkluderes avslagsbegrunnelsen i meldingen.
+        /// Returnerer uten å gjøre noe hvis rapporten ikke har en tilknyttet userId.
         /// </summary>
         private async Task CreateNotificationForPilotAsync(Report report, string status, string? rejectionReason)
         {
@@ -250,6 +286,13 @@ namespace newidentitytest.Controllers
             await _db.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Tildeler eller fjerner tildeling av en registerfører til en rapport.
+        /// Krever Registrar rolle.
+        /// Hvis registrarId er null eller tom, fjernes tildelingen.
+        /// Hvis registrarId er oppgitt, valideres at brukeren eksisterer og har Registrar-rolle.
+        /// Redirecter tilbake til Details med suksessmelding eller feilmelding hvis validering feiler.
+        /// </summary>
         [HttpPost]
         [Authorize(Roles = "Registrar")]
         [ValidateAntiForgeryToken]
@@ -282,6 +325,71 @@ namespace newidentitytest.Controllers
 
             TempData["SuccessMessage"] = "Report assigned.";
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        /// <summary>
+        /// Sletter en rapport permanent fra databasen.
+        /// Krever Registrar eller Admin rolle.
+        /// Sletter først alle tilknyttede notifikasjoner, deretter selve rapporten.
+        /// Oppretter en notifikasjon til piloten om at rapporten er slettet (hvis piloten eksisterer).
+        /// Redirecter til Index med suksessmelding eller feilmelding hvis rapporten ikke finnes.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Registrar,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var report = await _db.Reports.FirstOrDefaultAsync(r => r.Id == id);
+            if (report == null)
+            {
+                TempData["ErrorMessage"] = "Report not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Store report info for notification before deletion
+            var reportId = report.Id;
+            var userId = report.UserId;
+
+            // Delete associated notifications first
+            var notifications = await _db.Notifications
+                .Where(n => n.ReportId == reportId)
+                .ToListAsync();
+            _db.Notifications.RemoveRange(notifications);
+
+            // Delete the report
+            _db.Reports.Remove(report);
+            await _db.SaveChangesAsync();
+
+            // Create notification for pilot if they exist
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var registrarName = "a registrar";
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    var registrar = await _db.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+                    if (registrar != null)
+                    {
+                        registrarName = registrar.Email ?? registrar.UserName ?? "a registrar";
+                    }
+                }
+
+                var notification = new Notification
+                {
+                    UserId = userId,
+                    ReportId = reportId, // This will be a deleted report ID, but notification can still reference it
+                    Title = $"Report #{reportId} deleted",
+                    Message = $"Your report #{reportId} has been deleted by {registrarName}.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _db.Notifications.Add(notification);
+                await _db.SaveChangesAsync();
+            }
+
+            TempData["SuccessMessage"] = $"Report #{reportId} has been deleted.";
+            return RedirectToAction(nameof(Index));
         }
     }
 

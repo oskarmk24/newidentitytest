@@ -8,21 +8,27 @@ using System.Security.Claims; // Gir tilgang til brukerens Claims (f.eks. NameId
 namespace newidentitytest.Controllers
 {
     /// <summary>
-    /// Controller som håndterer skjema for å registrere hinder.
+    /// Controller som håndterer registrering og administrasjon av hinderrapporter.
+    /// Støtter opprettelse av nye rapporter, lagring som utkast (drafts), redigering av utkast,
+    /// og API-endepunkter for kartvisning av godkjente hinder.
     /// </summary>
-    [Authorize] // Krev at brukeren er innlogget for å bruke disse endepunktene
+    [Authorize]
     public class ObstacleController : Controller
     {
-        // Repository brukes til å lagre data i databasen
+        // Database context for å lagre og hente rapporter fra databasen
         private readonly ApplicationDbContext _dbContext;
 
+        /// <summary>
+        /// Initialiserer controlleren med ApplicationDbContext for databaseoperasjoner.
+        /// </summary>
         public ObstacleController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
         /// <summary>
-        /// Viser skjemaet for å registrere et nytt hinder (GET).
+        /// Viser skjemaet for å registrere et nytt hinder eller redigere et eksisterende utkast.
+        /// Hvis id-parameteren er satt, lastes eksisterende draft-data inn i skjemaet.
         /// </summary>
         [HttpGet]
         public ActionResult DataForm(int? id = null)
@@ -35,9 +41,11 @@ namespace newidentitytest.Controllers
         }
 
         /// <summary>
-        /// Tar imot skjema-data (POST).
-        /// Hvis data er gyldige lagres de i databasen og vi viser en oversiktsside.
-        /// Hvis noe er feil, vises skjemaet på nytt med feilmeldinger.
+        /// Tar imot skjema-data (POST) og lagrer som ny rapport eller oppdaterer eksisterende draft.
+        /// Støtter to handlinger: "submit" (full innsending med validering) og "draft" (lagre utkast med minimal validering).
+        /// Hvis id-parameteren er satt, oppdateres eksisterende draft i stedet for å opprette ny.
+        /// For full innsending valideres alle felt; for drafts kreves kun lokasjon.
+        /// Ved suksess: redirecter til Overview (submit) eller Drafts (draft).
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -136,6 +144,10 @@ namespace newidentitytest.Controllers
             return View("Overview", obstacleData);
         }
 
+        /// <summary>
+        /// Viser liste over alle utkast (drafts) for den innloggede piloten.
+        /// Krever Pilot-rolle. Sortert etter opprettelsesdato (nyeste først).
+        /// </summary>
         [HttpGet]
         [Authorize(Roles = "Pilot")]
         public async Task<IActionResult> Drafts()
@@ -154,6 +166,11 @@ namespace newidentitytest.Controllers
             return View(drafts);
         }
 
+        /// <summary>
+        /// Åpner skjemaet for redigering av et eksisterende utkast.
+        /// Krever Pilot-rolle. Sjekker at utkastet tilhører den innloggede brukeren.
+        /// Returnerer NotFound hvis utkastet ikke finnes eller ikke tilhører brukeren.
+        /// </summary>
         [HttpGet]
         [Authorize(Roles = "Pilot")]
         public async Task<IActionResult> EditDraft(int id)
@@ -185,6 +202,11 @@ namespace newidentitytest.Controllers
             return View("DataForm", obstacleData);
         }
 
+        /// <summary>
+        /// API-endepunkt som returnerer alle rapporter med lokasjon for kartvisning.
+        /// Returnerer JSON med Id, Type, Height og Location for alle rapporter som har ObstacleLocation.
+        /// Krever autentisering (arver fra [Authorize] på controller-nivå).
+        /// </summary>
         [HttpGet]
         [Route("/api/obstacles")]
         public async Task<IActionResult> GetObstaclesForMap()
@@ -202,6 +224,11 @@ namespace newidentitytest.Controllers
             
             return Ok(reports);
         }
+        /// <summary>
+        /// API-endepunkt som returnerer kun godkjente rapporter for offentlig kartvisning.
+        /// Returnerer JSON med Id, Type, Height og Location for rapporter med status "Approved".
+        /// Tillater anonym tilgang via [AllowAnonymous] for offentlig visning.
+        /// </summary>
         [HttpGet]
         [Route("/api/obstacles/approved")]
         [AllowAnonymous]

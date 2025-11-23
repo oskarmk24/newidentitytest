@@ -1,3 +1,7 @@
+@* 
+    Registrar dashboard displaying statistics and navigation to key administrative functions.
+    Shows total reports, pending reports, database status, and reports assigned to the current registrar.
+*@
 @using newidentitytest.Models
 @{
     ViewData["Title"] = "Registrar Dashboard";
@@ -7,13 +11,13 @@
 }
 
 <section class="container mx-auto py-12">
-    <!-- Welcome Header -->
+    @* Welcome header for registrars *@
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome, Registrar</h1>
         <p class="text-xl text-gray-600">Manage and review obstacle reports</p>
     </div>
 
-    <!-- Stats Cards -->
+    @* Statistics cards showing report counts and database status *@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
             <div class="flex items-center justify-between">
@@ -62,7 +66,7 @@
         </div>
     </div>
 
-    <!-- Navigation Buttons -->
+    @* Navigation cards to key registrar functions *@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <!-- View All Reports Button -->
         <a asp-controller="Reports" asp-action="Index" 
@@ -134,10 +138,9 @@
             </div>
         </a>
     </div>
-    
-    
 </section>
 
+@* Section displaying reports assigned to the current registrar *@
 <section class="container mx-auto pb-12">
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">

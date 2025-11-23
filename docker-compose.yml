@@ -1,50 +1,84 @@
+# Docker Compose konfigurasjon for Digital Obstacle Report applikasjonen.
+# Definerer tre tjenester: MariaDB database, ASP.NET Core applikasjon, og Adminer database-verktøy.
+# Alle tjenester kommuniserer på standard Docker-nettverket.
+
 services:
+  # MariaDB database-server for applikasjonen.
+  # Bruker MariaDB versjon 11 som database backend.
   mariadb:
     image: mariadb:11
     container_name: mariadb
     restart: unless-stopped
     environment:
+      # Rotbrukerpassord for MariaDB (kun for utvikling - endre i produksjon!)
       MARIADB_ROOT_PASSWORD: root123
+      # Navn på databasen som opprettes automatisk
       MARIADB_DATABASE: obstacledb
+      # Applikasjonsbruker for database-tilgang
       MARIADB_USER: appuser
+      # Passord for applikasjonsbrukeren
       MARIADB_PASSWORD: test123
     ports:
+      # Eksponerer MariaDB port 3306 til vertsmaskinen
       - "3306:3306"
     volumes:
+      # Persisterer database-data i et Docker volume for å bevare data mellom container-restarts
       - mariadb_data:/var/lib/mysql
     healthcheck:
+      # Health check for å sikre at databasen er klar før applikasjonen starter
+      # Tester database-tilkobling med mariadb-admin ping kommando
       test: [ "CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -proot123 --silent || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
+      interval: 5s      # Sjekker hvert 5. sekund
+      timeout: 5s       # Timeout på 5 sekunder per sjekk
+      retries: 30       # Prøver opptil 30 ganger før den gir opp
+      start_period: 60s # Gir databasen 60 sekunder til å starte før health check begynner
 
+  # ASP.NET Core applikasjonen (Digital Obstacle Report)
+  # Bygger fra Dockerfile i newidentitytest-mappen
   newidentitytest:
     build:
       context: .
       dockerfile: newidentitytest/Dockerfile
     image: newidentitytest:dev
     ports:
-      - "5173:8080"  # open on http://localhost:5173
+      # Eksponerer applikasjonen på http://localhost:5173
+      # Container port 8080 mappes til vertsport 5173
+      - "5173:8080"
     environment:
+      # Setter miljøvariabel til Development for utviklingsmodus
       ASPNETCORE_ENVIRONMENT: Development
+      # Connection string til MariaDB containeren
+      # Bruker service-navnet 'mariadb' som hostname (Docker DNS)
       ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=obstacledb;User Id=appuser;Password=test123;AllowUserVariables=True;UseAffectedRows=False;"
     depends_on:
       mariadb:
+        # Venter til MariaDB er healthy før applikasjonen starter
         condition: service_healthy
 
+  # Adminer - web-basert database-administrasjonsverktøy
+  # Brukes for å administrere og inspisere MariaDB-databasen via nettleser
   adminer:
     image: adminer
     container_name: adminer
     restart: unless-stopped
     ports:
-      - "8081:8080"  # open Adminer at http://localhost:8081
+      # Eksponerer Adminer på http://localhost:8081
+      # Container port 8080 mappes til vertsport 8081
+      - "8081:8080"
     depends_on:
       mariadb:
+        # Venter til MariaDB er healthy før Adminer starter
         condition: service_healthy
 
-# REMOVED: Unused network definition - services communicate on the default Docker network.
-# If you need a custom network, uncomment and add 'networks: [appnet]' to each service.
+# Merknad: Bruker ikke eksplisitt nettverksdefinisjon - tjenester kommuniserer på standard Docker-nettverket.
+# Hvis du trenger et tilpasset nettverk, kan du legge til:
+# networks:
+#   appnet:
+#     driver: bridge
+# Og deretter legge til 'networks: [appnet]' til hver tjeneste.
 
+# Docker volumes for persistering av data
 volumes:
+  # Volume for MariaDB database-data
+  # Dette sikrer at database-data bevares selv om containeren stoppes eller slettes
   mariadb_data:
