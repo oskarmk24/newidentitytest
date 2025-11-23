@@ -1,26 +1,35 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using newidentitytest.Data;
 using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {
     /// <summary>
-    /// Controller for managing organizations.
-    /// Requires authentication to access.
+    /// Controller for administrasjon av organisasjoner.
+    /// Støtter CRUD-operasjoner for organisasjoner og visning av rapporter fra organisasjonsmedlemmer.
+    /// Forskjellige operasjoner krever ulike roller: Create/Edit krever Admin/Registrar/OrganizationManager,
+    /// Delete krever Admin/Registrar, mens visning av rapporter har kompleks tilgangskontroll.
     /// </summary>
-    [Authorize] // Require authentication
+    [Authorize]
     public class OrganizationController : Controller
     {
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Initialiserer controlleren med ApplicationDbContext for databaseoperasjoner.
+        /// </summary>
         public OrganizationController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: List all organizations
+        /// <summary>
+        /// Viser liste over alle organisasjoner med tilhørende brukere.
+        /// Sortert alfabetisk etter navn. Tilgjengelig for alle autentiserte brukere.
+        /// </summary>
         public async Task<IActionResult> Index()
         {
             var organizations = await _context.Organizations
@@ -30,7 +39,10 @@ namespace newidentitytest.Controllers
             return View(organizations);
         }
 
-        // GET: View organization details
+        /// <summary>
+        /// Viser detaljvisning av en spesifikk organisasjon inkludert alle tilhørende brukere.
+        /// Returnerer NotFound hvis organisasjonen ikke finnes.
+        /// </summary>
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -50,17 +62,25 @@ namespace newidentitytest.Controllers
             return View(organization);
         }
 
-        // GET: Create organization form
-        [Authorize(Roles = "Admin,Manager")] // Only Admins and Managers can create organizations
+        /// <summary>
+        /// Viser skjema for å opprette ny organisasjon.
+        /// Krever Admin, Registrar eller OrganizationManager rolle.
+        /// </summary>
+        [Authorize(Roles = "Admin,Registrar,OrganizationManager")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Create organization
+        /// <summary>
+        /// Oppretter en ny organisasjon basert på skjemadata.
+        /// Krever Admin, Registrar eller OrganizationManager rolle.
+        /// Validerer modellen og viser feilmeldinger hvis validering feiler.
+        /// Ved suksess: redirecter til Index med suksessmelding.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin,Registrar,OrganizationManager")]
         public async Task<IActionResult> Create([Bind("Name,Description")] Organization organization)
         {
             if (ModelState.IsValid)
@@ -73,8 +93,12 @@ namespace newidentitytest.Controllers
             return View(organization);
         }
 
-        // GET: Edit organization
-        [Authorize(Roles = "Admin,Manager")]
+        /// <summary>
+        /// Viser skjema for redigering av eksisterende organisasjon.
+        /// Krever Admin, Registrar eller OrganizationManager rolle.
+        /// Returnerer NotFound hvis organisasjonen ikke finnes.
+        /// </summary>
+        [Authorize(Roles = "Admin,Registrar,OrganizationManager")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -90,10 +114,16 @@ namespace newidentitytest.Controllers
             return View(organization);
         }
 
-        // POST: Update organization
+        /// <summary>
+        /// Oppdaterer en eksisterende organisasjon basert på skjemadata.
+        /// Krever Admin, Registrar eller OrganizationManager rolle.
+        /// Håndterer DbUpdateConcurrencyException hvis organisasjonen har blitt endret av en annen bruker.
+        /// Validerer modellen og viser feilmeldinger hvis validering feiler.
+        /// Ved suksess: redirecter til Index med suksessmelding.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin,Registrar,OrganizationManager")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CreatedAt")] Organization organization)
         {
             if (id != organization.Id)
@@ -125,8 +155,13 @@ namespace newidentitytest.Controllers
             return View(organization);
         }
 
-        // GET: Delete organization
-        [Authorize(Roles = "Admin")]
+        /// <summary>
+        /// Viser bekreftelsesside for sletting av organisasjon.
+        /// Krever Admin eller Registrar rolle.
+        /// Inkluderer organisasjonens brukere i visningen for å vise konsekvenser av sletting.
+        /// Returnerer NotFound hvis organisasjonen ikke finnes.
+        /// </summary>
+        [Authorize(Roles = "Admin,Registrar")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -146,10 +181,15 @@ namespace newidentitytest.Controllers
             return View(organization);
         }
 
-        // POST: Delete organization
+        /// <summary>
+        /// Sletter organisasjonen permanent fra databasen.
+        /// Krever Admin eller Registrar rolle.
+        /// Brukere som tilhører organisasjonen får OrganizationId satt til null (via DeleteBehavior.SetNull).
+        /// Ved suksess: redirecter til Index med suksessmelding.
+        /// </summary>
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Registrar")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var organization = await _context.Organizations.FindAsync(id);
@@ -163,6 +203,123 @@ namespace newidentitytest.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Viser liste over rapporter fra medlemmer av en spesifikk organisasjon.
+        /// Har kompleks tilgangskontroll: Admin og Registrar kan se alle organisasjonsrapporter,
+        /// OrganizationManager kan kun se rapporter fra sin egen organisasjon,
+        /// og vanlige brukere kan se rapporter fra sin egen organisasjon.
+        /// Støtter sortering (id, CreatedAt, Sender, OrganizationName, ObstacleType, Status)
+        /// og søkefunksjonalitet. Returnerer Forbid hvis brukeren ikke har tilgang.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Reports(int? id, string sortBy = "CreatedAt", string sortOrder = "desc", string search = "")
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var organization = await _context.Organizations
+                .FirstOrDefaultAsync(m => m.Id == id);
+            
+            if (organization == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user has access: must be member of organization, Admin, Registrar, or OrganizationManager
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            
+            bool hasAccess = false;
+            if (user != null)
+            {
+                // Admin and Registrar can see all organization reports
+                if (User.IsInRole("Admin") || User.IsInRole("Registrar"))
+                {
+                    hasAccess = true;
+                }
+                // OrganizationManager can only see their own organization's reports
+                else if (User.IsInRole("OrganizationManager") && user.OrganizationId == id)
+                {
+                    hasAccess = true;
+                }
+                // Users can see reports from their own organization
+                else if (user.OrganizationId == id)
+                {
+                    hasAccess = true;
+                }
+            }
+
+            if (!hasAccess)
+            {
+                return Forbid();
+            }
+
+            // Get user IDs for this organization
+            var organizationUserIds = await _context.Users
+                .Where(u => u.OrganizationId == id)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            // Build query for reports from organization members
+            var query = from r in _context.Reports
+                        where organizationUserIds.Contains(r.UserId)
+                        join u in _context.Users on r.UserId equals u.Id into userJoin
+                        from u in userJoin.DefaultIfEmpty()
+                        join o in _context.Organizations on u.OrganizationId equals o.Id into orgJoin
+                        from o in orgJoin.DefaultIfEmpty()
+                        select new ReportListItem
+                        {
+                            Id = r.Id,
+                            CreatedAt = r.CreatedAt,
+                            Sender = u != null ? (u.Email ?? u.UserName) : "(unknown)",
+                            OrganizationName = o != null ? o.Name : null,
+                            ObstacleType = r.ObstacleType,
+                            Status = r.Status,
+                            ObstacleLocation = r.ObstacleLocation
+                        };
+
+            // Apply sorting
+            query = sortBy.ToLower() switch
+            {
+                "id" => sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id),
+                "createdat" => sortOrder == "asc" ? query.OrderBy(r => r.CreatedAt) : query.OrderByDescending(r => r.CreatedAt),
+                "sender" => sortOrder == "asc" ? query.OrderBy(r => r.Sender) : query.OrderByDescending(r => r.Sender),
+                "organizationname" => sortOrder == "asc" ? query.OrderBy(r => r.OrganizationName ?? "") : query.OrderByDescending(r => r.OrganizationName ?? ""),
+                "obstacletype" => sortOrder == "asc" ? query.OrderBy(r => r.ObstacleType ?? "") : query.OrderByDescending(r => r.ObstacleType ?? ""),
+                "status" => sortOrder == "asc" ? query.OrderBy(r => r.Status) : query.OrderByDescending(r => r.Status),
+                _ => query.OrderByDescending(r => r.CreatedAt)
+            };
+
+            var items = await query.ToListAsync();
+
+            // Apply search filter in-memory
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLowerInvariant();
+                items = items.Where(r =>
+                    r.Id.ToString().Contains(searchLower) ||
+                    (r.Sender ?? string.Empty).ToLowerInvariant().Contains(searchLower) ||
+                    (r.OrganizationName ?? string.Empty).ToLowerInvariant().Contains(searchLower) ||
+                    ((r.ObstacleType ?? string.Empty).ToLowerInvariant().Contains(searchLower)) ||
+                    r.CreatedAt.ToString("MMM dd, yyyy").ToLowerInvariant().Contains(searchLower) ||
+                    ((r.Status ?? string.Empty).ToLowerInvariant().Contains(searchLower))
+                ).ToList();
+            }
+
+            ViewBag.Organization = organization;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
+            ViewBag.Search = search;
+
+            return View(items);
+        }
+
+        /// <summary>
+        /// Hjelpemetode som sjekker om en organisasjon med gitt ID eksisterer i databasen.
+        /// Brukes for concurrency-sjekk i Edit-metoden.
+        /// </summary>
         private bool OrganizationExists(int id)
         {
             return _context.Organizations.Any(e => e.Id == id);

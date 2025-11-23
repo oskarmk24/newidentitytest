@@ -1,35 +1,97 @@
-﻿@model string
+﻿@* 
+    Admin home page dashboard.
+    Displays database connectivity status and provides navigation to key administrative functions:
+    Reports, Organizations, Roles, and User Management.
+*@
+@model string
 
 @{
     ViewData["Title"] = "Home Page";
 }
 
-<section class="mx-auto max-w-3xl">
-    <div class="text-center space-y-4">
-        <!-- Velkomsttekst -->
-        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">Welcome</h1>
+<section class="container mx-auto py-12">
+    @* Welcome header for administrators *@
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome, Administrator</h1>
+        <p class="text-xl text-gray-600">Manage the obstacle reporting system</p>
+    </div>
 
-        <!-- Informasjon + link til Microsoft-dokumentasjon -->
-        <p class="text-base sm:text-lg text-gray-700">
-            Learn about
-            <a class="text-indigo-700 hover:underline"
-               href="https://learn.microsoft.com/aspnet/core">
-                building Web apps with ASP.NET Core
-            </a>
-        </p>
-
-        <!-- Viser en melding fra controlleren (f.eks. database-status) hvis den finnes -->
-        @if (!string.IsNullOrWhiteSpace(Model))
-        {
-            <p class="text-gray-800">@Model</p>
-        }
-
-        <!-- Knapp som sender brukeren videre til skjemaet for å registrere hinder -->
-        <div class="pt-4">
-            <a asp-action="DataForm" asp-controller="Obstacle"
-               class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-indigo-600 text-indigo-700 hover:bg-indigo-50">
-                Register Obstacle
-            </a>
+    @* Database connectivity status indicator *@
+    @if (!string.IsNullOrWhiteSpace(Model))
+    {
+        <div class="max-w-md mx-auto mb-12">
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Database Status</p>
+                        <p class="text-lg font-semibold text-gray-900 mt-2">@Model</p>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </div>
+    }
+
+    @* Navigation cards to key administrative sections *@
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        @* Reports management card *@
+        <a asp-controller="Reports" asp-action="Index" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-indigo-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-indigo-100 rounded-full mb-4 group-hover:bg-indigo-200 transition-colors">
+                    <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Reports</h3>
+                <p class="text-gray-600 text-sm">Browse and manage all obstacle reports</p>
+            </div>
+        </a>
+
+        @* Organizations management card *@
+        <a asp-controller="Organization" asp-action="Index" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-purple-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-purple-100 rounded-full mb-4 group-hover:bg-purple-200 transition-colors">
+                    <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Organizations</h3>
+                <p class="text-gray-600 text-sm">Manage organizations and their members</p>
+            </div>
+        </a>
+
+        @* Roles management card *@
+        <a asp-controller="Role" asp-action="Index" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-teal-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-teal-100 rounded-full mb-4 group-hover:bg-teal-200 transition-colors">
+                    <svg class="w-10 h-10 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Roles</h3>
+                <p class="text-gray-600 text-sm">Manage user roles and permissions</p>
+            </div>
+        </a>
+
+        @* User management card *@
+        <a asp-controller="UserManagement" asp-action="Index" 
+           class="group relative bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8 hover:ring-2 hover:ring-cyan-500 hover:shadow-md transition-all duration-200">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 bg-cyan-100 rounded-full mb-4 group-hover:bg-cyan-200 transition-colors">
+                    <svg class="w-10 h-10 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Users</h3>
+                <p class="text-gray-600 text-sm">Manage user accounts and assignments</p>
+            </div>
+        </a>
     </div>
 </section>

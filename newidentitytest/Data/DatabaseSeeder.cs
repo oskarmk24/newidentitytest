@@ -5,8 +5,21 @@ using newidentitytest.Models;
 
 namespace newidentitytest.Data;
 
+/// <summary>
+/// Statisk klasse for seeding av initial data i databasen.
+/// Oppretter roller, organisasjoner og testbrukere ved første oppstart.
+/// Kalles automatisk fra Program.cs etter migreringer.
+/// </summary>
 public static class DatabaseSeeder
 {
+    /// <summary>
+    /// Hovedmetode for seeding av roller, organisasjoner og testbrukere.
+    /// Oppretter standardroller (Admin, Registrar, Pilot, OrganizationManager) hvis de ikke eksisterer.
+    /// Oppretter standard admin-bruker hvis ingen admin-brukere finnes.
+    /// Oppretter eksempelorganisasjoner (Kartverket, NLA, Luftforsvaret, Politiet) hvis ingen organisasjoner finnes.
+    /// Kaller SeedTestUsersAsync for å opprette testbrukere.
+    /// </summary>
+    /// <param name="serviceProvider">ServiceProvider for å hente nødvendige tjenester (RoleManager, UserManager, DbContext, Configuration).</param>
     public static async Task SeedRolesAndOrganizations(IServiceProvider serviceProvider)
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -14,8 +27,8 @@ public static class DatabaseSeeder
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
         
-        // Create roles if they don't exist
-        string[] roles = { "Admin", "Registrar", "Pilot" };
+        // Oppretter standardroller hvis de ikke allerede eksisterer
+        string[] roles = { "Admin", "Registrar", "Pilot", "OrganizationManager" };
         foreach (var roleName in roles)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -24,7 +37,7 @@ public static class DatabaseSeeder
             }
         }
         
-        // Create default admin user if no admin exists
+        // Oppretter standard admin-bruker hvis ingen admin-brukere finnes
         var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
         if (!adminUsers.Any())
         {
@@ -55,7 +68,7 @@ public static class DatabaseSeeder
             }
             else
             {
-                // User exists but doesn't have Admin role
+                // Brukeren eksisterer, men mangler Admin-rolle - tildel rollen
                 if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
                 {
                     await userManager.AddToRoleAsync(adminUser, "Admin");
@@ -64,7 +77,7 @@ public static class DatabaseSeeder
             }
         }
         
-        // Create sample organizations if none exist
+        // Oppretter eksempelorganisasjoner hvis ingen organisasjoner finnes
         if (!dbContext.Organizations.Any())
         {
             dbContext.Organizations.AddRange(
@@ -76,19 +89,27 @@ public static class DatabaseSeeder
             await dbContext.SaveChangesAsync();
         }
 
-        // Create test users
+        // Oppretter testbrukere
         await SeedTestUsersAsync(userManager, dbContext);
     }
 
+    /// <summary>
+    /// Oppretter testbrukere for utvikling og testing.
+    /// Oppretter registerførere, piloter og organisasjonsledere fordelt på ulike organisasjoner.
+    /// Hvis en bruker allerede eksisterer, tildeles rollen hvis den mangler.
+    /// Hvis organisasjonen ikke finnes, hoppes brukeren over.
+    /// </summary>
+    /// <param name="userManager">UserManager for å opprette og administrere brukere.</param>
+    /// <param name="dbContext">ApplicationDbContext for å hente organisasjoner.</param>
     private static async Task SeedTestUsersAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
     {
-        // Get organizations
+        // Henter organisasjoner fra databasen for å tildele til testbrukere
         var kartverket = await dbContext.Organizations.FirstOrDefaultAsync(o => o.Name == "Kartverket");
         var nla = await dbContext.Organizations.FirstOrDefaultAsync(o => o.Name == "NLA");
         var luftforsvaret = await dbContext.Organizations.FirstOrDefaultAsync(o => o.Name == "Luftforsvaret");
         var politiet = await dbContext.Organizations.FirstOrDefaultAsync(o => o.Name == "Politiets helikoptertjeneste");
 
-        // Create Registrar users (Kartverket)
+        // Oppretter registerførere tilknyttet Kartverket
         var registrarUsers = new[]
         {
             new { Email = "registrar1@kartverket.no", Password = "Registrar123!", Organization = kartverket },
@@ -130,7 +151,7 @@ public static class DatabaseSeeder
             }
         }
 
-        // Create Pilot users (NLA)
+        // Oppretter piloter tilknyttet NLA
         var nlaPilots = new[]
         {
             new { Email = "pilot.nla1@nla.no", Password = "Pilot123!", Organization = nla },
@@ -172,7 +193,7 @@ public static class DatabaseSeeder
             }
         }
 
-        // Create Pilot users (Luftforsvaret)
+        // Oppretter piloter tilknyttet Luftforsvaret
         var luftforsvaretPilots = new[]
         {
             new { Email = "pilot.luftforsvaret1@mil.no", Password = "Pilot123!", Organization = luftforsvaret },
@@ -214,7 +235,7 @@ public static class DatabaseSeeder
             }
         }
 
-        // Create Pilot users (Politiet)
+        // Oppretter piloter tilknyttet Politiet
         var politietPilots = new[]
         {
             new { Email = "pilot.politiet1@politiet.no", Password = "Pilot123!", Organization = politiet }
@@ -254,6 +275,49 @@ public static class DatabaseSeeder
                 Console.WriteLine($"Pilot role assigned to existing user: {userData.Email}");
             }
         }
+
+        // Oppretter organisasjonsledere (én per organisasjon)
+        var organizationManagers = new[]
+        {
+            new { Email = "manager@kartverket.no", Password = "Manager123!", Organization = kartverket },
+            new { Email = "manager@nla.no", Password = "Manager123!", Organization = nla },
+            new { Email = "manager@luftforsvaret.no", Password = "Manager123!", Organization = luftforsvaret },
+            new { Email = "manager@politiet.no", Password = "Manager123!", Organization = politiet }
+        };
+
+        foreach (var userData in organizationManagers)
+        {
+            if (userData.Organization == null) continue;
+            
+            var existingUser = await userManager.FindByEmailAsync(userData.Email);
+            if (existingUser == null)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = userData.Email,
+                    Email = userData.Email,
+                    EmailConfirmed = true,
+                    OrganizationId = userData.Organization.Id
+                };
+
+                var result = await userManager.CreateAsync(user, userData.Password);
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(user, "OrganizationManager");
+                    Console.WriteLine($"OrganizationManager user created: {userData.Email}");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to create OrganizationManager user {userData.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+            }
+            else if (!await userManager.IsInRoleAsync(existingUser, "OrganizationManager"))
+            {
+                existingUser.OrganizationId = userData.Organization.Id;
+                await userManager.UpdateAsync(existingUser);
+                await userManager.AddToRoleAsync(existingUser, "OrganizationManager");
+                Console.WriteLine($"OrganizationManager role assigned to existing user: {userData.Email}");
+            }
+        }
     }
-    
 }

@@ -1,3 +1,9 @@
+@* 
+    Obstacle registration form view with interactive map.
+    Allows pilots to register new obstacles by selecting location on map and filling form details.
+    For registrars, displays read-only map view of all approved obstacles.
+    Supports both Point and LineString obstacle types with fullscreen map toggle functionality.
+*@
 @model newidentitytest.Models.ObstacleData
 
 @{
@@ -5,19 +11,20 @@
     var isRegistrar = User.IsInRole("Registrar");
 }
 
+@* Material Symbols icon font for info icons *@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
 
-<!-- Kartseksjon for å velge posisjon (map first) -->
+@* Interactive map section for selecting obstacle location *@
 <section id="mapWrapper" class="mx-auto max-w-2xl map-fullscreen">
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 map-card">
         <header class="mb-6">
             <h1 class="text-2xl font-semibold">@(isRegistrar ? "Obstacle Reports Map" : "Map")</h1>
         </header>
 
-        <!-- Selve kartet -->
+        @* Leaflet map container *@
         <div id="map" style="position: relative;"></div>
 
-        <!-- Hint-tekst som oppdateres når bruker klikker i kartet -->
+        @* Dynamic hint text that updates when user interacts with map *@
         <div id="coordsHint" class="mt-2 text-sm text-gray-600">
             @if (isRegistrar)
             {
@@ -30,7 +37,7 @@
         </div>
     </div>
     
-    <!-- Toggle button for fullscreen/minimize map (always visible, positioned relative to mapWrapper) -->
+    @* Fullscreen toggle button for map view *@
     <button id="toggleMapButton" 
             class="toggle-map-button"
             aria-label="Toggle map view"
@@ -44,6 +51,7 @@
     </button>
 </section>
 
+@* Registration form section - only visible to non-registrars (pilots) *@
 @if (!isRegistrar)
 {
     <section class="mx-auto max-w-2xl pt-6" id="formSection" style="display:none;">
@@ -53,9 +61,9 @@
                 <p class="text-gray-600 mt-1">Please register an obstacle</p>
             </header>
 
-            <!-- Skjema for å registrere hinder -->
+            @* Obstacle registration form *@
             <form asp-action="DataForm" method="post" class="space-y-5">
-                <!-- Viser feilmeldinger hvis valideringen feiler -->
+                @* Validation error summary *@
                 <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
 
                 <!-- Skjult input som lagrer posisjon fra kartet, trenger denne for at serveren skal vite hvor brukeren trykket p� kartet -->
@@ -138,22 +146,22 @@
                         <span asp-validation-for="ObstacleType" class="text-sm text-red-600"></span>
                     </div>
 
-                    <!-- Hyde p hinder -->
+                    @* Obstacle height input with meter/feet unit toggle *@
                     <div>
                         <label class="block text-sm font-medium text-gray-800 mb-1">
                             Obstacle Height (<span id="unitText">Meters</span>)
                         </label>
-                        <!-- Hidden, model-bound input stores meters for server-side validation -->
+                        @* Hidden input stores height in meters for server-side validation *@
                         <input asp-for="ObstacleHeight" type="hidden" id="ObstacleHeight" />
 
-                        <!-- Visible slider controlling the height; value shown below -->
+                        @* Visible range slider for height input with unit display *@
                         <input id="ObstacleHeightDisplay" type="range" min="0" max="200" step="0.1"
                                class="w-full accent-indigo-600" aria-describedby="ObstacleHeightValue ObstacleHeightDisplayUnit" />
                         <div class="mt-2 text-sm text-gray-600">
                             <span id="ObstacleHeightValue">0.0</span> <span id="ObstacleHeightDisplayUnit">meters</span>
                         </div>
 
-                        <!-- Simple on/off switch for ft/m -->
+                        @* Unit toggle switch between meters and feet *@
                         <div class="mt-1 flex items-center justify-start gap-2">
                             <label class="switch" title="Toggle feet/meters">
                                 <input id="unitToggle" type="checkbox" aria-label="Toggle feet/meters">
@@ -166,7 +174,7 @@
                     </div>
                 </div>
 
-                <!-- Beskrivelse av hinder -->
+                @* Obstacle description textarea *@
                 <div class="sm:col-span-2">
                     <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Description</label>
                     <textarea asp-for="ObstacleDescription" rows="4"
@@ -175,7 +183,7 @@
                     <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
                 </div>
 
-                <!-- Knapp for å sende inn skjemaet -->
+                @* Form submission buttons: Submit Data (full submission) or Save as Draft *@
                 <div class="pt-2 flex gap-3">
                     <button type="submit" name="action" value="submit"
                             class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -186,6 +194,7 @@
                         Save as Draft
                     </button>
                 </div>
+                @* Display draft ID when editing an existing draft *@
                 @if (ViewBag.DraftId != null)
                 {
                     <input type="hidden" name="id" value="@ViewBag.DraftId" />
@@ -200,7 +209,7 @@
 
 
 
-<!-- Størrelse på kartet -->
+@* Map styling and fullscreen toggle functionality *@
 <style>
     #mapWrapper { 
         transition: all 0.3s ease; 
@@ -364,15 +373,15 @@
 </style>
 
 @section Scripts {
-    <!-- Script for klient-side validering -->
+    @* Client-side validation scripts *@
     <partial name="_ValidationScriptsPartial" />
 
-    <!-- Laster inn filer fra JsDelivr CDN for marker lokasjon -->
+    @* Leaflet LocateControl plugin for user location detection *@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.85.1/dist/L.Control.Locate.min.js" charset="utf-8"></script>
     
     <script>
-        // Include hidden inputs in client-side validation so ObstacleLocation (hidden) shows errors
+        @* Configure jQuery Validate to include hidden inputs (like ObstacleLocation) in validation *@
         if (window.jQuery && jQuery.validator) {
             jQuery(function(){
                 var $form = jQuery('form[method="post"][action$="DataForm"], form').first();
@@ -382,7 +391,7 @@
             });
         }
 
-        // ----- Obstacle type selector -----
+        @* Obstacle type button selector functionality *@
         (function () {
             var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-obstacle-type]'));
             var hiddenType = document.getElementById('ObstacleType');
@@ -411,9 +420,9 @@
                 select(hiddenType.value);
             }
         })();
-        // ----- End obstacle type selector -----
+        @* End obstacle type selector *@
 
-        // ----- Obstacle type info toggle -----
+        @* Obstacle type information panel toggle *@
         (function () {
             var toggle = document.getElementById('ObstacleTypeInfoToggle');
             var panel = document.getElementById('ObstacleTypeInfoPanel');
@@ -481,14 +490,15 @@
         });
 
         map.on('locationerror', function () {
-            alert('Kunne ikke hente posisjonen din.');
+            alert('Could not retrieve your location.');
         });
 
-        // Holder referanse til markøren + skjult input
+        @* References to map markers, hidden inputs, and UI elements *@
         var marker = null;
         var hidden = document.getElementById('ObstacleLocation');
         var hint = document.getElementById('coordsHint');
-        var savedObstaclesLayer = L.layerGroup().addTo(map); // Lag for vedvarende (lagrede) hinder
+        @* Layer group for displaying saved/approved obstacles from database *@
+        var savedObstaclesLayer = L.layerGroup().addTo(map);
         var formSection = document.getElementById('formSection');
         var mapWrapper = document.getElementById('mapWrapper');
         var appBody = document.body;
@@ -496,15 +506,15 @@
         var minimizeIcon = document.getElementById('minimizeIcon');
         var maximizeIcon = document.getElementById('maximizeIcon');
         
-        // Check if user is registrar (read-only mode)
+        @* Determine if user is in read-only mode (registrar) *@
         var isReadOnly = @(isRegistrar ? "true" : "false");
         
-        // Start with fullscreen for pilots (not registrars)
+        @* Initialize fullscreen state for pilots *@
         if (!isReadOnly && appBody && mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
             appBody.classList.add('map-lock');
         }
 
-        // Dynamisk skalering basert på zoom
+        @* Dynamic scaling of markers and lines based on map zoom level *@
         function getScaleForZoom(zoom) {
             var baseZoom = 15;
             var scale = Math.pow(1.3, zoom - baseZoom);
@@ -534,7 +544,7 @@
 
         map.on('zoomend', updateAllScales);
 
-        // Enkel modus-velger og state for linje
+        @* Drawing mode state: 'point' for single point obstacles, 'line' for LineString obstacles *@
         var drawMode = 'point'; // 'point' eller 'line'
         var modePoint = document.getElementById('modePoint');
         var modeLine = document.getElementById('modeLine');
@@ -542,10 +552,10 @@
         var linePoints = []; // [ [lat, lng], ... ] - Array som holder koordinater for linjen
         var polyline = null; // Leaflet polyline for visning av linjen på kartet
         var startCircle = null; // Sirkel ved starten av linjen
-        var endCircle = null;   // Sirkel ved slutten av linjen
-        var lineLocked = false; // Hindrer å legge til flere punkter etter at Done er trykket
+        var endCircle = null;   @* Circle marker at end of line *@
+        var lineLocked = false; @* Prevents adding more points after line is locked (Done clicked) *@
 
-        // Lagrer posisjon i JSON-format i skjult input (Point)
+        @* Save Point location as GeoJSON in hidden input *@
         function setLocation(lat, lng) {
             var payload = {
                 type: "Point",
@@ -553,31 +563,27 @@
             };
             hidden.value = JSON.stringify(payload);
             if (hint) {
-                hint.textContent = "Valgt: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
+                hint.textContent = "Selected: lat " + lat.toFixed(6) + ", lng " + lng.toFixed(6);
             }
 
-            // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
+            @* Show form section when location is selected *@
             if (formSection && formSection.style.display === 'none') {
                 formSection.style.display = 'block';
-                // Don't scroll into view if map is fullscreen - let user decide when to minimize
+                @* Don't auto-scroll if map is fullscreen *@
                 if (!mapWrapper || !mapWrapper.classList.contains('map-fullscreen')) {
                     formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                // REMOVED: hidePilotMenu();
             }
-
-            // REMOVED: Don't automatically exit fullscreen when point is marked
-            // User can manually toggle with the button
         }
 
-        // Lagrer linje i JSON-format (GeoJSON LineString)
+        @* Save LineString location as GeoJSON in hidden input *@
         function setLocationLine(points) { // points: [ [lat, lng], ... ]
             if (!points || points.length < 2) { hidden.value = ''; return; }
             // Konverter fra [lat, lng] til [lng, lat] for GeoJSON-format
             var coords = points.map(function (p) { return [Number(p[1].toFixed(6)), Number(p[0].toFixed(6))]; });
             var payload = { type: "LineString", coordinates: coords };
             hidden.value = JSON.stringify(payload);
-            if (hint) { hint.textContent = 'Linje med ' + points.length + ' punkter.'; }
+            if (hint) { hint.textContent = 'Line with ' + points.length + ' points.'; }
             
             // Vis skjemaet for å registrere hinder når brukeren har valgt en posisjon på kartet.
             if (formSection && formSection.style.display === 'none') {
@@ -607,7 +613,7 @@
             setLocation(latlng.lat, latlng.lng);
         }
 
-        // Funksjon for å vise popup-melding på kartet
+        @* Display warning popup on map for user feedback *@
         function showLocationWarningPopup(latlng, message) {
             // Fjern eksisterende popup hvis den finnes
             if (map._locationWarningPopup) {
@@ -643,21 +649,21 @@
             }, 5000);
         }
 
-        // Når brukeren klikker på kartet, plasser markør eller bygg linje avhengig av modus
+        @* Map click handler: place marker (point mode) or add point to line (line mode) *@
         if (!isReadOnly) {
             map.on('click', function (e) {
                 // Velg: punkt eller bygg linje
                 if (typeof drawMode === 'string' && drawMode === 'line') {
                     if (lineLocked) {
-                        // Vis popup hvis linjen er låst
+                        @* Show warning if line is already locked *@
                         showLocationWarningPopup(
                             e.latlng,
-                            '<div style="text-align: center; padding: 5px;"><strong>Linjen er allerede lagret!</strong><br>Trykk "Slett" for å starte på nytt.</div>'
+                            '<div style="text-align: center; padding: 5px;"><strong>The line is already saved!</strong><br>Click "Clear" to start over.</div>'
                         );
                         return;
                     }
                     
-                    // Sjekk om det allerede finnes punkter i linjen
+                    @* Check if line already has points and confirm continuation *@
                     if (linePoints.length > 0) {
                         // Vis bekreftelsesdialog før man legger til flere punkter
                         if (!confirm('You have already started a line with ' + linePoints.length + ' point(s). Do you want to continue adding points to this line?')) {
@@ -668,17 +674,17 @@
                     var zoom = map.getZoom();
                     var scale = getScaleForZoom(zoom);
                     
-                    // Legg til nytt punkt i linjen
+                    @* Add new point to line *@
                     linePoints.push([e.latlng.lat, e.latlng.lng]);
                     
-                    // Opprett eller oppdater polyline
+                    @* Create or update polyline visualization *@
                     if (!polyline) { 
                         polyline = L.polyline(linePoints, { color: 'red', weight: 4 * scale, lineCap: 'butt' }).addTo(map); 
                     } else { 
                         polyline.setLatLngs(linePoints); 
                     }
                     
-                    // Oppdater start- og slutt-sirkler
+                    @* Update start and end circle markers *@
                     if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
                     if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
                     
@@ -702,7 +708,7 @@
                         }).addTo(map);
                     }
                     
-                    // Oppdater hint-teksten
+                    @* Update hint text based on line state *@
                     if (linePoints.length >= 2) { 
                         if (hint) hint.textContent = 'Line points: ' + linePoints.length + '. Press Done to save.'; 
                     } else { 
@@ -710,19 +716,19 @@
                         if (hint) hint.textContent = 'Add at least 2 points for a line.'; 
                     }
                 } else {
-                    // Punktmodus - sjekk om markør allerede finnes
+                    @* Point mode - check if marker already exists and confirm move *@
                     if (marker) {
-                        // Vis bekreftelsesdialog før markøren flyttes
+                        @* Show confirmation before moving existing marker *@
                         if (!confirm('You have already marked a location. Do you want to move the marker to this new position?')) {
-                            return; // Cancel if user clicks "Cancel"
+                            return;
                         }
                     }
-                    // Plasser eller flytt markør
+                    @* Place or move marker to clicked location *@
                     placeOrMoveMarker(e.latlng);
                 }
             });
         } else {
-            // For registrars, just show coordinates in hint without showing form
+            @* For registrars: read-only mode - just display coordinates on click *@
             map.on('click', function (e) {
                 if (hint) {
                     hint.textContent = "Lat: " + e.latlng.lat.toFixed(6) + ", Lng: " + e.latlng.lng.toFixed(6) + " (View only)";
@@ -730,10 +736,10 @@
             });
         }
 
-        // ---------------- Lagre hinder, etter innsending (localStorage) ----------------
+        @* LocalStorage key for persisting obstacles (legacy - now loads from database) *@
         const LS_KEY = 'persisted_obstacles_v1';
 
-        // Laster inn alle lagrede hinder fra localStorage
+        @* Load obstacles from localStorage (legacy functionality) *@
         function loadSavedObstacles() {
             try {
                 var raw = localStorage.getItem(LS_KEY);
@@ -741,12 +747,12 @@
             } catch (_) { return []; }
         }
 
-        // Lagrer alle hinder til localStorage
+        @* Save obstacles to localStorage (legacy functionality) *@
         function saveAll(obstacles) {
             try { localStorage.setItem(LS_KEY, JSON.stringify(obstacles)); } catch (_) { /* ignore */ }
         }
 
-        // Beregner lengden av en linje ved hjelp av Haversine-formelen (i meter)
+        @* Calculate line length using Haversine formula (returns meters) *@
         function calculateLineLength(coordinates) {
             if (!coordinates || coordinates.length < 2) return 0;
             
@@ -757,7 +763,7 @@
                 var lat2 = coordinates[i + 1][0];
                 var lng2 = coordinates[i + 1][1];
                 
-                // Haversine-formel for å beregne avstanden mellom to punkter
+                @* Haversine formula to calculate distance between two points *@
                 var R = 6371000; // Jordens radius i meter
                 var dLat = (lat2 - lat1) * Math.PI / 180;
                 var dLng = (lng2 - lng1) * Math.PI / 180;
@@ -773,12 +779,12 @@
             return totalLength;
         }
 
-        // Hjelpefunksjon: Formater verdi med enhet
+        @* Helper: Format value with unit *@
         function formatValue(val) {
             return (val !== null && val !== undefined && val !== '') ? (val + ' m') : 'Ikke spesifisert';
         }
 
-        // Hjelpefunksjon: Lag popup HTML
+        @* Helper: Build popup HTML for obstacle markers *@
         function buildPopupHtml(label, h, w, lengthText) {
             var html = '<div style="min-width:180px">' +
                 '<div><strong>Type:</strong> ' + label + '</div>' +
@@ -788,7 +794,7 @@
             return html;
         }
 
-        // Hjelpefunksjon: Lag tooltip tekst
+        @* Helper: Build tooltip text for obstacle markers *@
         function buildTooltip(label, h, w, lengthText) {
             var text = label + ' - H:' + h;
             if (lengthText) text += ' - L:' + lengthText;
@@ -796,14 +802,14 @@
             return text;
         }
 
-        // Hjelpefunksjon: Lag endepunkt-sirkel
+        @* Helper: Add endpoint circle marker for line obstacles *@
         function addEndpointCircle(latlng, label) {
             L.circleMarker(latlng, {
                 radius: 5, color: '#000', weight: 2, fillColor: '#dc2626', fillOpacity: 1
             }).bindTooltip(label, { permanent: false }).addTo(savedObstaclesLayer);
         }
 
-        // Load obstacles from database
+        @* Load approved obstacles from database via API endpoint *@
         async function loadObstaclesFromDatabase() {
             try {
                 const response = await fetch('/api/obstacles/approved');
@@ -839,13 +845,13 @@
             }
         }
 
-        // Updated render function that loads from database
+        @* Render saved obstacles on map, loading from database instead of localStorage *@
         async function renderSavedObstacles() {
             savedObstaclesLayer.clearLayers();
             var zoom = map.getZoom();
             var scale = getScaleForZoom(zoom);
             
-            // Load from database instead of localStorage
+            @* Load obstacles from database API *@
             const obstacles = await loadObstaclesFromDatabase();
             
             obstacles.forEach(function (o) {
@@ -853,9 +859,9 @@
                 
                 var label = o.type || 'Obstacle';
                 var h = formatValue(o.height);
-                var w = formatValue(null); // Width not stored in database
+                var w = formatValue(null); @* Width not stored in database *@
                 
-                // Handle LineString obstacles
+                @* Handle LineString obstacles *@
                 if (o.geometry && o.geometry.type === 'LineString' && o.geometry.coordinates) {
                     var latlngs = o.geometry.coordinates.map(function(c) { return [c[1], c[0]]; });
                     var lengthText = (function(len) {
@@ -884,10 +890,10 @@
                             weight: 2, 
                             fillColor: '#dc2626', 
                             fillOpacity: 1 
-                        }).bindTooltip('Slutt', { permanent: false }).addTo(savedObstaclesLayer);
+                        }).bindTooltip('Slutt', { permanent: false                         }).addTo(savedObstaclesLayer);
                     }
                 }
-                // Handle Point obstacles
+                @* Handle Point obstacles *@
                 else if (typeof o.lat === 'number' && typeof o.lng === 'number') {
                     var cm = L.circleMarker([o.lat, o.lng], {
                         radius: 8 * scale, color: '#b91c1c', weight: 2, fillColor: '#dc2626', fillOpacity: 0.8
@@ -899,46 +905,46 @@
             });
         }
 
-        // Update the initial call to be async
+        @* Initial render of saved obstacles *@
         renderSavedObstacles();
 
-        // Lokaliserer posisjon
+        @* Add locate control for user location detection *@
         L.control.locate().addTo(map);
 
-        // Leaflet-kontroll inne i kartet: Point / Linear / Done / Clear
+        @* Custom Leaflet control for drawing modes: Point / Line / Done / Clear *@
         (function(){
             var ctrl = L.control({ position: 'topleft' });
             ctrl.onAdd = function(map){
                 var container = L.DomUtil.create('div', 'leaflet-bar');
 
-                // Punkt-knapp
+                @* Point mode button *@
                 var btnPoint = L.DomUtil.create('a', 'mode-btn', container);
                 btnPoint.href = '#'; btnPoint.title = 'Point'; btnPoint.setAttribute('aria-label','Point');
-                // Bruker Leaflets standard markør-ikon for et kjent utseende
+                @* Use Leaflet's standard marker icon *@
                 btnPoint.innerHTML = '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" alt="Point">';
 
-                // Linje-knapp
+                @* Line mode button *@
                 var btnLine = L.DomUtil.create('a', 'mode-btn', container);
                 btnLine.href = '#'; btnLine.title = 'Line'; btnLine.setAttribute('aria-label','Line');
                 btnLine.innerHTML = '\n<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n  <path d="M4 16 L20 8" stroke="red" stroke-width="3" stroke-linecap="butt" fill="none"/>\n  <circle cx="4" cy="16" r="3" fill="red" stroke="#111" stroke-width="2"/>\n  <circle cx="20" cy="8" r="3" fill="red" stroke="#111" stroke-width="2"/>\n</svg>\n';
 
-                // Ferdig-knapp (Done)
+                @* Done button - locks line when clicked *@
                 var btnDone = L.DomUtil.create('a', 'mode-btn', container);
                 btnDone.href = '#'; btnDone.title = 'Done'; btnDone.setAttribute('aria-label','Done');
                 btnDone.innerHTML = '\n<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n  <path d="M5 13 L9 17 L19 7" stroke="#111" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>\n</svg>\n';
 
-                // Slett-knapp (Clear)
+                @* Clear button - removes current marker/line *@
                 var btnClear = L.DomUtil.create('a', 'mode-btn', container);
                 btnClear.href = '#'; btnClear.title = 'Clear'; btnClear.setAttribute('aria-label','Clear');
                 btnClear.innerHTML = '\n<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n  <path d="M6 6 L18 18 M18 6 L6 18" stroke="#111" stroke-width="2" stroke-linecap="round"/>\n</svg>\n';
 
-                // Oppdater hvilken knapp som er aktiv
+                @* Update active button state *@
                 function updateActive(){
                     btnPoint.classList.toggle('active', drawMode === 'point');
                     btnLine.classList.toggle('active', drawMode === 'line');
                 }
 
-                // Hendelseshåndterere for knappene
+                @* Event handlers for control buttons *@
                 L.DomEvent.on(btnPoint, 'click', function(e){ 
                     L.DomEvent.preventDefault(e); 
                     setMode('point'); 
@@ -957,29 +963,29 @@
                         if (linePoints.length >= 2) {
                             setLocationLine(linePoints);
                             lineLocked = true;
-                            if (hint) hint.textContent = 'Linje lagret. Du kan sende inn skjemaet eller trykke Slett for å redigere.';
+                            if (hint) hint.textContent = 'Line saved. You can submit the form or click Clear to edit.';
                         } else {
-                            if (hint) hint.textContent = 'Legg til minst 2 punkter for å fullføre en linje.';
+                            if (hint) hint.textContent = 'Add at least 2 points to complete a line.';
                         }
                     } else {
-                        if (hint) hint.textContent = 'Bytt til Linje-modus for å tegne en linje.';
+                        if (hint) hint.textContent = 'Switch to Line mode to draw a line.';
                     }
                 });
                 
                 L.DomEvent.on(btnClear, 'click', function(e){
                     L.DomEvent.preventDefault(e);
-                    // Slett både punkt og linje
+                    @* Clear both point marker and line *@
                     if (marker) { map.removeLayer(marker); marker = null; }
                     if (polyline) { map.removeLayer(polyline); polyline = null; }
                     if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
                     if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
                     linePoints = [];
                     hidden.value = '';
-                    if (hint) hint.textContent = (drawMode === 'line') ? 'Linje-modus: klikk for å legge til punkter.' : 'Klikk på kartet for å plassere en markør.';
+                    if (hint) hint.textContent = (drawMode === 'line') ? 'Line mode: click to add points.' : 'Click on the map to place a marker.';
                     lineLocked = false;
                 });
 
-                // Hindrer at klikk på kontrollen bobler til kartet
+                @* Prevent clicks on control from bubbling to map *@
                 L.DomEvent.disableClickPropagation(container);
                 L.DomEvent.disableScrollPropagation(container);
 
@@ -989,29 +995,28 @@
             ctrl.addTo(map);
         })();
 
-        // Bytte modus
+        @* Switch between point and line drawing modes *@
         function setMode(mode) {
             drawMode = mode;
             if (mode === 'point') {
-                // Rydd bort linje når vi bytter til punktmodus
+                @* Clear line when switching to point mode *@
                 linePoints = [];
                 if (polyline) { map.removeLayer(polyline); polyline = null; }
                 if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
                 if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
                 hidden.value = '';
-                if (hint) hint.textContent = 'Klikk på kartet for å plassere en markør.';
+                if (hint) hint.textContent = 'Click on the map to place a marker.';
                 lineLocked = false;
             } else {
-                // Fjern punkt-markør når vi bytter til linjemodus
+                @* Remove point marker when switching to line mode *@
                 if (marker) { map.removeLayer(marker); marker = null; }
                 hidden.value = '';
-                if (hint) hint.textContent = 'Linje-modus: klikk for å legge til punkter.';
+                if (hint) hint.textContent = 'Line mode: click to add points.';
                 lineLocked = false;
             }
         }
 
-
-        // ----- Height unit toggle (Meters <-> Feet) -----
+        @* Height unit toggle functionality: convert between meters and feet *@
         (function () {
             var hiddenMeters = document.getElementById('ObstacleHeight');
             var displayInput = document.getElementById('ObstacleHeightDisplay');
@@ -1021,14 +1026,14 @@
             var valueUnitText = document.getElementById('ObstacleHeightDisplayUnit');
 
             var M_TO_FT = 3.28084;
-            var currentUnit = 'm'; // 'm' for meters, 'ft' for feet
+            var currentUnit = 'm'; @* 'm' for meters, 'ft' for feet *@
 
-            // Safety guard: if any element is missing, skip setup to avoid runtime errors
+            @* Safety guard: skip setup if required elements are missing *@
             if (!hiddenMeters || !displayInput || !unitToggle || !unitText) {
                 return;
             }
 
-            // Read range from MVC unobtrusive attributes if present; fallback to 0..200
+            @* Read validation range from MVC data attributes, fallback to 0-200 meters *@
             var minMetersAttr = hiddenMeters ? hiddenMeters.getAttribute('data-val-range-min') : null;
             var maxMetersAttr = hiddenMeters ? hiddenMeters.getAttribute('data-val-range-max') : null;
             var minMeters = (minMetersAttr !== null && minMetersAttr !== '') ? parseFloat(minMetersAttr) : 0;
@@ -1147,10 +1152,10 @@
             var form = displayInput.form;
             if (form) {
                 form.addEventListener('submit', function () {
-                    // Oppdater skjult felt fra display-verdi rett før innsending
+                    @* Update hidden field from display value before submission *@
                     updateHiddenFromDisplay();
                     try {
-                        // Hent nåværende hinderdetaljer slik at de vedvarer på tvers av refresh
+                        @* Persist obstacle details to localStorage for cross-refresh persistence *@
                         var typeEl = document.getElementById('ObstacleType');
                         var widthEl = document.getElementById('ObstacleWidthDisplay');
                         var locRaw = hidden.value ? JSON.parse(hidden.value) : null;
@@ -1164,7 +1169,7 @@
                                 width: widthEl && widthEl.value !== '' ? Number(widthEl.value) : null
                             };
                             
-                            // Sjekk om dette er et punkt-hinder (Point)
+                            @* Check if this is a Point obstacle *@
                             if (locRaw.type === 'Point' && Array.isArray(locRaw.coordinates) && locRaw.coordinates.length === 2) {
                                 var lng = Number(locRaw.coordinates[0]);
                                 var lat = Number(locRaw.coordinates[1]);
@@ -1175,9 +1180,9 @@
                                     obstacles.push(obstacleData);
                                 }
                             }
-                            // Sjekk om dette er et linje-hinder (LineString)
+                            @* Check if this is a LineString obstacle *@
                             else if (locRaw.type === 'LineString' && Array.isArray(locRaw.coordinates) && locRaw.coordinates.length >= 2) {
-                                // Lagre hele geometrien for linjen
+                                @* Save complete geometry for line *@
                                 obstacleData.geometry = {
                                     type: 'LineString',
                                     coordinates: locRaw.coordinates
@@ -1185,7 +1190,7 @@
                                 obstacles.push(obstacleData);
                             }
                             
-                            // Lagre alle hinder og oppdater kartet
+                            @* Save all obstacles and update map *@
                             saveAll(obstacles);
                             renderSavedObstacles();
                         }
@@ -1193,16 +1198,15 @@
                 });
             }
 
-            // Observe changes to the validation span (when jQuery Validate updates it)
+            @* Observe validation span changes to update unit-specific error messages *@
             if (valSpan && 'MutationObserver' in window) {
                 var observer = new MutationObserver(function () { updateValidationMessage(); });
                 observer.observe(valSpan, { childList: true, characterData: true, subtree: true });
             }
         })();
-        // ----- End unit toggle -----
+        @* End unit toggle *@
 
-        // Cleaned up: no extra JS for slider fill
-        // Also hide drawing controls for registrars
+        @* Hide drawing controls for registrars (read-only mode) *@
         @if (isRegistrar)
         {
             <text>
@@ -1214,14 +1218,14 @@
             </text>
         }
 
-        // Function to toggle fullscreen map view
+        @* Toggle fullscreen map view functionality *@
         function toggleFullscreenMap() {
             if (!mapWrapper) return;
             
             var isFullscreen = mapWrapper.classList.contains('map-fullscreen');
             
             if (isFullscreen) {
-                // Exit fullscreen
+                @* Exit fullscreen mode *@
                 mapWrapper.classList.remove('map-fullscreen');
                 if (appBody) {
                     appBody.classList.remove('map-lock');
@@ -1230,7 +1234,7 @@
                 if (minimizeIcon) minimizeIcon.style.display = 'none';
                 if (maximizeIcon) maximizeIcon.style.display = 'block';
             } else {
-                // Enter fullscreen
+                @* Enter fullscreen mode *@
                 mapWrapper.classList.add('map-fullscreen');
                 if (appBody) {
                     appBody.classList.add('map-lock');
@@ -1240,15 +1244,13 @@
                 if (maximizeIcon) maximizeIcon.style.display = 'none';
             }
             
-            // Invalidate map size after transition
+            @* Invalidate map size after transition to ensure proper rendering *@
             if (typeof map !== 'undefined' && map && map.invalidateSize) {
                 setTimeout(function () { map.invalidateSize(); }, 300);
             }
-            
-            // REMOVED: hidePilotMenu();
         }
         
-        // Add click handler for toggle button
+        @* Add click handler for fullscreen toggle button *@
         if (toggleMapButton) {
             toggleMapButton.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1257,7 +1259,7 @@
             });
         }
         
-        // Initialize icon display based on initial state
+        @* Initialize icon display based on initial fullscreen state *@
         if (mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
             if (minimizeIcon) minimizeIcon.style.display = 'block';
             if (maximizeIcon) maximizeIcon.style.display = 'none';
@@ -1265,6 +1267,97 @@
             if (minimizeIcon) minimizeIcon.style.display = 'none';
             if (maximizeIcon) maximizeIcon.style.display = 'block';
         }
+
+        @* Load and restore existing ObstacleLocation when editing a draft *@
+        (function() {
+            var existingLocation = @Html.Raw(Json.Serialize(Model?.ObstacleLocation ?? ""));
+            
+            if (existingLocation && typeof existingLocation === 'string' && existingLocation.trim() !== '') {
+                try {
+                    var geo = JSON.parse(existingLocation);
+                    
+                    if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates) && geo.coordinates.length >= 2) {
+                        @* Convert from GeoJSON [lng, lat] to Leaflet [lat, lng] format *@
+                        var latlngs = geo.coordinates.map(function(c) { 
+                            return [c[1], c[0]]; 
+                        });
+                        
+                        @* Set to line mode and restore line points *@
+                        setMode('line');
+                        if (modeLine) modeLine.click();
+                        
+                        @* Restore line state *@
+                        linePoints = latlngs;
+                        lineLocked = true;
+                        
+                        @* Draw the restored polyline on map *@
+                        polyline = L.polyline(latlngs, { 
+                            color: '#dc2626', 
+                            weight: 4 * getScaleForZoom(map.getZoom()), 
+                            opacity: 0.8, 
+                            lineCap: 'butt' 
+                        }).addTo(map);
+                        
+                        @* Add start and end circle markers *@
+                        if (latlngs.length > 0) {
+                            startCircle = L.circleMarker(latlngs[0], {
+                                radius: 4 * getScaleForZoom(map.getZoom()),
+                                fillColor: '#10b981',
+                                color: '#ffffff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            }).addTo(map);
+                            
+                            endCircle = L.circleMarker(latlngs[latlngs.length - 1], {
+                                radius: 4 * getScaleForZoom(map.getZoom()),
+                                fillColor: '#ef4444',
+                                color: '#ffffff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            }).addTo(map);
+                        }
+                        
+                        @* Fit map bounds to show entire line *@
+                        if (polyline) {
+                            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                        }
+                        
+                        @* Update hint text *@
+                        if (hint) {
+                            hint.textContent = 'Linje med ' + latlngs.length + ' punkter (lastet fra draft).';
+                        }
+                        
+                        @* Show form section *@
+                        if (formSection) {
+                            formSection.style.display = 'block';
+                        }
+                    } else if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates) && geo.coordinates.length >= 2) {
+                        @* Handle Point type obstacle *@
+                        var lat = geo.coordinates[1];
+                        var lng = geo.coordinates[0];
+                        
+                        @* Set to point mode and place marker *@
+                        setMode('point');
+                        if (modePoint) modePoint.click();
+                        
+                        @* Place marker at saved location *@
+                        placeOrMoveMarker([lat, lng]);
+                        
+                        @* Center map on point location *@
+                        map.setView([lat, lng], 15);
+                        
+                        @* Show form section *@
+                        if (formSection) {
+                            formSection.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not parse existing ObstacleLocation:', e);
+                }
+            }
+        })();
 
     </script>
 }

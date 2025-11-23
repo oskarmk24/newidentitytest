@@ -1,6 +1,13 @@
+@* 
+    Pending reports listing page for registrars.
+    Displays all reports with "Pending" status with sorting, search, and quick approve/reject actions.
+*@
 @model IEnumerable<newidentitytest.Models.ReportListItem>
 @{
     ViewData["Title"] = "Pending Reports";
+    var sortBy = ViewBag.SortBy as string ?? "CreatedAt";
+    var sortOrder = ViewBag.SortOrder as string ?? "desc";
+    var search = ViewBag.Search as string ?? "";
 }
 
 <section class="container mx-auto py-8">
@@ -9,14 +16,76 @@
         <a asp-controller="Registrar" asp-action="Index" class="inline-flex items-center rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Back to Dashboard</a>
     </header>
 
+    <div class="mb-4">
+        @* Server-side search form with sort parameter preservation *@
+        <form method="get" action="@Url.Action("Pending")" class="flex items-center gap-2">
+            <input type="text" name="search" value="@search" placeholder="Search..." 
+                   class="rounded-lg ring-1 ring-gray-300 px-3 py-2" />
+            <input type="hidden" name="sortBy" value="@sortBy" />
+            <input type="hidden" name="sortOrder" value="@sortOrder" />
+            <button type="submit" class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
+                Search
+            </button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a href="@Url.Action("Pending", new { sortBy = sortBy, sortOrder = sortOrder })" 
+                   class="rounded-lg px-3 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
+                    Clear
+                </a>
+            }
+        </form>
+    </div>
+
     <div class="overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
         <table class="min-w-full text-sm">
             <thead class="bg-gray-50 text-left text-gray-600">
                 <tr>
-                    <th class="px-4 py-3">ID</th>
-                    <th class="px-4 py-3">Submitted</th>
-                    <th class="px-4 py-3">Sender</th>
-                    <th class="px-4 py-3">Type</th>
+                    @{
+                        string GetSortUrl(string column)
+                        {
+                            var newSortOrder = (sortBy == column && sortOrder == "asc") ? "desc" : "asc";
+                            return Url.Action("Pending", new { sortBy = column, sortOrder = newSortOrder, search = search });
+                        }
+                        
+                        string GetSortIcon(string column)
+                        {
+                            if (sortBy == column)
+                            {
+                                return sortOrder == "asc" ? "↑" : "↓";
+                            }
+                            return "⇅";
+                        }
+                    }
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("id")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Report ID <span class="text-gray-600">@GetSortIcon("id")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("createdat")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Submission Date <span class="text-gray-600">@GetSortIcon("createdat")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("sender")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Reporter <span class="text-gray-600">@GetSortIcon("sender")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("organizationname")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Organization <span class="text-gray-600">@GetSortIcon("organizationname")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("obstacletype")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Obstacle Type <span class="text-gray-600">@GetSortIcon("obstacletype")</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-3">
+                        <a href="@GetSortUrl("status")" class="flex items-center gap-1 hover:text-gray-900 text-gray-600">
+                            Status <span class="text-gray-600">@GetSortIcon("status")</span>
+                        </a>
+                    </th>
                     <th class="px-4 py-3">Actions</th>
                 </tr>
             </thead>
@@ -29,10 +98,26 @@
                         </td>
                         <td class="px-4 py-3">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
                         <td class="px-4 py-3">@r.Sender</td>
+                        <td class="px-4 py-3">@(!string.IsNullOrWhiteSpace(r.OrganizationName) ? r.OrganizationName : "-")</td>
                         <td class="px-4 py-3">@(r.ObstacleType ?? "-")</td>
+                        <td class="px-4 py-3">
+                            @{
+                                var status = r.Status ?? "Pending";
+                                var statusClass = status.ToLowerInvariant() switch
+                                {
+                                    "approved" => "bg-green-100 text-green-800",
+                                    "rejected" => "bg-red-100 text-red-800",
+                                    _ => "bg-yellow-100 text-yellow-800"
+                                };
+                            }
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium @statusClass">
+                                @status
+                            </span>
+                        </td>
                         <td class="px-4 py-3">
                             <div class="flex gap-2">
                                 <form asp-controller="Reports" asp-action="Approve" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@r.Id" />
                                     <button type="submit" class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700" onclick="return confirm('Approve report @r.Id?');">Approve</button>
                                 </form>
@@ -45,7 +130,7 @@
         </table>
     </div>
 
-    <!-- Reject modal -->
+    @* Rejection modal dialog for entering rejection reason *@
     <div id="registrarRejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
             <form id="registrarRejectForm" asp-controller="Reports" asp-action="Reject" method="post">

@@ -7,17 +7,35 @@ using newidentitytest.Models;
 
 namespace newidentitytest.Controllers
 {
+	/// <summary>
+	/// Controller for piloter (Pilot-rolle).
+	/// Gir dashboard med oversikt over egne rapporter, utkast, notifikasjoner og systemstatus.
+	/// Støtter visning og administrasjon av pilotens egne rapporter med sortering og søk.
+	/// Krever Pilot-rolle. Hver pilot kan kun se og administrere sine egne rapporter og notifikasjoner.
+	/// </summary>
 	[Authorize(Roles = "Pilot")]
 	public class PilotController : Controller
 	{
 		private readonly ApplicationDbContext _db;
 
+		/// <summary>
+		/// Initialiserer controlleren med ApplicationDbContext for databaseoperasjoner.
+		/// </summary>
 		public PilotController(ApplicationDbContext db)
 		{
 			_db = db;
 		}
 
-		// GET: /Pilot/Index
+		/// <summary>
+		/// Viser dashboard for piloten med oversikt over egne rapporter, utkast og notifikasjoner.
+		/// Beregner og viser:
+		/// - Totalt antall rapporter
+		/// - Antall utkast (Draft)
+		/// - Antall innsendte rapporter (ikke-utkast)
+		/// - Systemstatus (databaseforbindelse)
+		/// - Ulesste notifikasjoner (maks 10, sortert etter nyeste først)
+		/// Returnerer Forbid hvis brukeren ikke har gyldig userId.
+		/// </summary>
 		[HttpGet]
 		public async Task<IActionResult> Index()
 		{
@@ -71,7 +89,13 @@ namespace newidentitytest.Controllers
 			return View();
 		}
 
-		// GET: /Pilot/MyReports
+		/// <summary>
+		/// Viser liste over pilotens egne rapporter med sortering og søkefunksjonalitet.
+		/// Filtrerer automatisk på den innloggede pilotens userId.
+		/// Støtter sortering etter: id, CreatedAt, ObstacleType, Status (standard: CreatedAt desc).
+		/// Støtter søk i: Id, ObstacleType, CreatedAt (dato), Status.
+		/// Returnerer Forbid hvis brukeren ikke har gyldig userId.
+		/// </summary>
 		[HttpGet]
 		public async Task<IActionResult> MyReports(string sortBy = "CreatedAt", string sortOrder = "desc", string search = "")
 		{
@@ -130,7 +154,13 @@ namespace newidentitytest.Controllers
 			return View(items);
 		}
 
-		// Mark notification as read
+		/// <summary>
+		/// Marker en spesifikk notifikasjon som lest for den innloggede piloten.
+		/// Sjekker at notifikasjonen tilhører piloten før den markeres som lest.
+		/// Oppdaterer IsRead til true og setter ReadAt til nåværende tid (UTC).
+		/// Redirecter tilbake til Index etter oppdatering.
+		/// Returnerer Forbid hvis brukeren ikke har gyldig userId.
+		/// </summary>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> MarkNotificationAsRead(int id)
@@ -154,7 +184,12 @@ namespace newidentitytest.Controllers
 			return RedirectToAction(nameof(Index));
 		}
 
-		// Mark all notifications as read
+		/// <summary>
+		/// Marker alle uleste notifikasjoner som lest for den innloggede piloten.
+		/// Oppdaterer alle notifikasjoner hvor IsRead er false til true og setter ReadAt til nåværende tid (UTC).
+		/// Redirecter tilbake til Index etter oppdatering.
+		/// Returnerer Forbid hvis brukeren ikke har gyldig userId.
+		/// </summary>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> MarkAllNotificationsAsRead()

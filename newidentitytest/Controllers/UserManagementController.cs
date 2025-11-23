@@ -9,16 +9,21 @@ using newidentitytest.Models;
 namespace newidentitytest.Controllers
 {
     /// <summary>
-    /// Controller for managing users, including assigning them to organizations and roles.
-    /// Requires Admin role to access.
+    /// Controller for administrasjon av brukere.
+    /// Støtter visning av alle brukere med roller, detaljvisning, og tildeling/fjerning av brukere til organisasjoner.
+    /// Roller administreres via RoleController.
+    /// Krever Admin eller Registrar rolle for alle operasjoner.
     /// </summary>
-    [Authorize(Roles = "Admin")] // Only admins can manage users
+    [Authorize(Roles = "Admin,Registrar")]
     public class UserManagementController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Initialiserer controlleren med UserManager, RoleManager og ApplicationDbContext for bruker-, rolle- og databaseoperasjoner.
+        /// </summary>
         public UserManagementController(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
@@ -29,7 +34,11 @@ namespace newidentitytest.Controllers
             _context = context;
         }
 
-        // GET: List all users
+        /// <summary>
+        /// Viser liste over alle brukere i systemet med deres organisasjoner og roller.
+        /// Sortert alfabetisk etter e-postadresse.
+        /// Henter roller for hver bruker og pakker dem inn i UserViewModel for visning.
+        /// </summary>
         public async Task<IActionResult> Index()
         {
             var users = await _userManager.Users
@@ -51,7 +60,11 @@ namespace newidentitytest.Controllers
             return View(usersWithRoles);
         }
 
-        // GET: View user details
+        /// <summary>
+        /// Viser detaljvisning av en spesifikk bruker.
+        /// Inkluderer brukerens organisasjon, roller og alle tilgjengelige organisasjoner for tildeling.
+        /// Returnerer NotFound hvis bruker-ID er null eller brukeren ikke finnes.
+        /// </summary>
         public async Task<IActionResult> Details(string? id)
         {
             if (id == null)
@@ -75,7 +88,13 @@ namespace newidentitytest.Controllers
             return View(user);
         }
 
-        // POST: Assign user to organization
+        /// <summary>
+        /// Tildeler en bruker til en organisasjon.
+        /// Validerer at både brukeren og organisasjonen eksisterer.
+        /// Oppdaterer brukerens OrganizationId og lagrer endringen.
+        /// Redirecter tilbake til Details med suksessmelding eller feilmelding.
+        /// Returnerer NotFound hvis brukeren eller organisasjonen ikke finnes.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignToOrganization(string userId, int organizationId)
@@ -107,7 +126,13 @@ namespace newidentitytest.Controllers
             return RedirectToAction(nameof(Details), new { id = userId });
         }
 
-        // POST: Remove user from organization
+        /// <summary>
+        /// Fjerner en bruker fra sin organisasjon ved å sette OrganizationId til null.
+        /// Validerer at brukeren eksisterer.
+        /// Oppdaterer brukeren og lagrer endringen.
+        /// Redirecter tilbake til Details med suksessmelding eller feilmelding.
+        /// Returnerer NotFound hvis brukeren ikke finnes.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveFromOrganization(string userId)
@@ -133,10 +158,20 @@ namespace newidentitytest.Controllers
             return RedirectToAction(nameof(Details), new { id = userId });
         }
 
-        // Helper class for user view model
+        /// <summary>
+        /// ViewModel-klasse for å pakke brukerinformasjon sammen med brukerens roller.
+        /// Brukes i Index-visningen for å vise alle brukere med deres tilknyttede roller.
+        /// </summary>
         public class UserViewModel
         {
+            /// <summary>
+            /// Brukeren som skal vises.
+            /// </summary>
             public ApplicationUser User { get; set; } = null!;
+            
+            /// <summary>
+            /// Liste over alle roller som brukeren har.
+            /// </summary>
             public List<string> Roles { get; set; } = new();
         }
     }

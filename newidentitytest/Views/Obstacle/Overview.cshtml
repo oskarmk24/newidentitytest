@@ -1,4 +1,9 @@
-﻿@model newidentitytest.Models.ObstacleData
+﻿@* 
+    Obstacle registration confirmation/overview page.
+    Displays submitted obstacle data including type, height, description, and location on a map.
+    Shows both Point and LineString obstacles with appropriate visualization.
+*@
+@model newidentitytest.Models.ObstacleData
 
 @{
     ViewData["Title"] = "Overview";
@@ -11,15 +16,15 @@
             <p class="text-gray-600 mt-1">Thank you for registering an obstacle</p>
         </header>
 
-        <!-- Viser dataene brukeren har fylt ut i skjemaet -->
+        @* Display submitted obstacle data *@
         <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Navn på hinder -->
+            @* Obstacle type *@
             <div class="sm:col-span-1">
                 <dt class="text-sm font-medium text-gray-600">Obstacle Type</dt>
                 <dd class="mt-1 text-base text-gray-900 break-words">@(!string.IsNullOrWhiteSpace(Model.ObstacleType) ? Model.ObstacleType : "")</dd>
             </div>
 
-            <!-- Høyde på hinder -->
+            @* Obstacle height (displayed in both meters and feet) *@
             <div class="sm:col-span-1">
                 <dt class="text-sm font-medium text-gray-600">Height</dt>
                 <dd class="mt-1 text-base text-gray-900">
@@ -32,7 +37,7 @@
                 </dd>
             </div>
 
-            <!-- Beskrivelse av hinder -->
+            @* Obstacle description *@
             <div class="sm:col-span-1">
                 <dt class="text-sm font-medium text-gray-600">Description</dt>
                 <dd class="mt-1 text-base text-gray-900 break-words sm:col-span-3">@Model.ObstacleDescription</dd>
@@ -43,7 +48,7 @@
         {
             <div class="mt-4 space-y-2">
                 <p><strong>Location:</strong> 
-                    @{ // Deserialiserer lokasjonen og viser ryddig tekst uten GeoJSON-type
+                    @{ @* Deserialize location and display formatted coordinates *@
                         try
                         {
                             var geo = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(Model.ObstacleLocation);
@@ -70,48 +75,50 @@
                             }
                             else
                             {
-                                // Ukjent format: vis kort tekst uten støy
+                                @* Unknown format: show generic message *@
                                 <text>Location data received</text>
                             }
                         }
                         catch { <text>Location data received</text>; }
                     }
                 </p>
+                @* Map container for displaying obstacle location *@
                 <div id="map2" style="height: 320px;" class="rounded-xl ring-1 ring-gray-200"></div>
             </div>
 
+            @* Leaflet map library and polyline decorator plugin *@
             <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
             <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
             <script src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js"></script>
 
             <script>
-                // Dersom lokasjoninfo ikke kan hentes vil de vise error melding.
+                @* Initialize map and display obstacle location (Point or LineString) *@
 
                     try
                     {
-                        // Init map first so tiles always load even if parsing fails
+                        @* Initialize map first so tiles load even if parsing fails *@
                         var map2 = L.map('map2');
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap contributors'}).addTo(map2);
-                        // Ensure tiles load even if parsing fails
+                        @* Default view centered on Norway *@
                         map2.setView([59.91, 10.75], 5);
 
-                        // Robustly parse location which may be a JSON string containing JSON
+                        @* Parse location JSON (may be double-encoded) *@
                         var raw = @Html.Raw(Json.Serialize(Model.ObstacleLocation));
                         var geo = JSON.parse(raw);
                         if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch(_) {} }
 
-                        // Støtt både Point og LineString på oversiktskartet
+                        @* Support both Point and LineString obstacle types on overview map *@
                         if (geo && geo.type === 'LineString' && Array.isArray(geo.coordinates)) {
                             var latlngs = geo.coordinates.map(function(c){ return [c[1], c[0]]; });
                             var pl = L.polyline(latlngs, { color: 'red', weight: 4, opacity: 1, lineCap: 'butt' }).addTo(map2);
-                            // End-caps as small circles
+                            @* Add start and end circle markers *@
                             if (latlngs.length > 0) {
                                 var start = latlngs[0];
                                 var end = latlngs[latlngs.length - 1];
                                 L.circleMarker(start, { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map2).bringToFront();
                                 L.circleMarker(end,   { radius: 4, color: '#000', weight: 2, fillColor: 'red', fillOpacity: 1 }).addTo(map2).bringToFront();
                             }
-                            // Dots along the line (if plugin present)
+                            @* Add decorative dots along line if polyline decorator plugin is available *@
                             if (L && typeof L.polylineDecorator === 'function') {
                                 L.polylineDecorator(pl, {
                                     patterns: [
@@ -128,12 +135,13 @@
                             }
                             map2.fitBounds(pl.getBounds(), { padding: [20, 20] });
                         } else if (geo && geo.type === 'Point' && Array.isArray(geo.coordinates)) {
+                            @* Handle Point type obstacle *@
                             var lng = geo.coordinates[0];
                             var lat = geo.coordinates[1];
                             map2.setView([lat, lng], 13);
                             L.marker([lat, lng]).addTo(map2);
                         } else {
-                            // Fallback: center Norway if unknown format
+                            @* Fallback: center on Norway if format is unknown *@
                             map2.setView([60.39, 5.32], 6);
                         }
                     }
@@ -146,7 +154,7 @@
             </script>
         }
 
-        <!-- Tilbake-knapp som sender brukeren til startsiden -->
+        @* Back to home button *@
         <div class="pt-2">
             <a asp-controller="Home" asp-action="Index"
                class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:bg-gray-50">

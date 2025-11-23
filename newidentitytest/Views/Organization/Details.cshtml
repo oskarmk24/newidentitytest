@@ -1,3 +1,7 @@
+@* 
+    Organization details page displaying organization information and member list.
+    Shows organization name, description, creation date, and all users assigned to the organization.
+*@
 @model newidentitytest.Models.Organization
 
 @{
@@ -46,16 +50,23 @@
             </div>
         </div>
 
-        <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3">
-            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-            {
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
-                    Edit
+        <div class="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
+            <div>
+                <a asp-action="Reports" asp-route-id="@Model.Id" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                    View Organization Reports
                 </a>
-            }
-            <a asp-action="Index" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
-                Back to List
-            </a>
+            </div>
+            <div class="flex gap-3">
+                @if (User.IsInRole("Admin") || User.IsInRole("Registrar") || User.IsInRole("Manager"))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+                        Edit
+                    </a>
+                }
+                <a asp-action="Index" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+                    Back to List
+                </a>
+            </div>
         </div>
     </div>
 </div>

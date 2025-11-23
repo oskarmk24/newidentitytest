@@ -1,4 +1,10 @@
-﻿@model newidentitytest.Models.ReportDetailsViewModel
+﻿@* 
+    Report details view displaying full information about a specific report.
+    Includes status badges, obstacle details, location map, and action buttons for registrars.
+    Supports report approval, rejection, assignment, and deletion.
+*@
+@using System.Security.Claims
+@model newidentitytest.Models.ReportDetailsViewModel
 @{
     ViewData["Title"] = "Report Details";
 }
@@ -6,12 +12,12 @@
 <section class="mx-auto max-w-3xl">
   <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-4">
     <header>
-      @* Page title and a short summary line with sender and date *@
+      @* Page title with sender and submission date *@
       <h1 class="text-2xl font-semibold">Report @Model.Report.Id</h1>
       <p class="text-gray-600">Submitted by @Model.Sender on @Model.Report.CreatedAt.ToString("g")</p>
     </header>
 
-        @* Status Badge *@
+        @* Status badge and assigned registrar information *@
         <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
                 @if (Model.Report.Status == "Approved")
@@ -39,7 +45,7 @@
             </div>
         </div>
 
-    @* Definition list presents key/value pairs neatly *@
+    @* Report details in definition list format *@
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <dt class="text-sm text-gray-600">Obstacle Type</dt>
@@ -177,6 +183,7 @@
       </script>
     }
 
+        @* Registrar assignment form - only visible to registrars for pending reports *@
         @if (User.IsInRole("Registrar") && Model.Report.Status == "Pending")
         {
             var registrarOptions = ViewBag.RegistrarOptions as IEnumerable<dynamic>;
@@ -219,7 +226,7 @@
             </div>
         }
 
-        @* Action buttons for Registrar *@
+        @* Action buttons for Registrar/Admin: Approve, Reject, Delete *@
         @if (User.IsInRole("Registrar") || User.IsInRole("Admin"))
         {
             @if (Model.Report.Status == "Pending")
@@ -251,12 +258,40 @@
             }
         }
 
+        @* Delete button for Registrar/Admin *@
+        @if (User.IsInRole("Registrar") || User.IsInRole("Admin"))
+        {
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+                <h3 class="font-semibold text-red-900">Report Deletion</h3>
+                <p class="text-sm text-red-700">Permanently delete this report. This action cannot be undone.</p>
+                <form asp-action="Delete" method="post" class="flex-1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Report.Id" />
+                    <button type="submit"
+                            onclick="return confirm('Are you sure you want to delete report #@Model.Report.Id? This action cannot be undone.');"
+                            class="inline-flex justify-center items-center rounded-lg px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                        Delete Report
+                    </button>
+                </form>
+            </div>
+        }
+
         <div class="pt-2">
-            <a asp-controller="Reports" asp-action="Index" class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:bg-gray-50">Back to Reports</a>
+            @{
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isMyReport = !string.IsNullOrEmpty(userId) && Model.Report.UserId == userId;
+                var backUrl = isMyReport && User.IsInRole("Pilot") 
+                    ? Url.Action("MyReports", "Pilot") 
+                    : Url.Action("Index", "Reports");
+                var backText = isMyReport && User.IsInRole("Pilot") 
+                    ? "Back to My Reports" 
+                    : "Back to Reports";
+            }
+            <a href="@backUrl" class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:bg-gray-50">@backText</a>
         </div>
     </div>
 
-    @* Rejection Modal *@
+    @* Rejection modal dialog for entering rejection reason *@
     <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
             <form asp-action="Reject" method="post">

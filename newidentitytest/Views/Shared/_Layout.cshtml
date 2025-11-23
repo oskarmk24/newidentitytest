@@ -1,11 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@* 
+    Main layout template for the application.
+    Provides the HTML structure, navigation, and common scripts/styles used across all pages.
+    Includes responsive navigation that adapts based on authentication status and current page context.
+*@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Digital Obstacle Report</title>
 
-    <!-- Tailwind (CDN for quick start). For production, use a proper build pipeline. -->
+    @* Tailwind CSS via CDN - for production, use a proper build pipeline *@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -17,10 +22,10 @@
         }
     </script>
 
-    <!-- Your app/site styles -->
+    @* Application-specific stylesheets *@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <!-- If this was from the old project name, you can remove it; otherwise point to the correct styles file -->
     <link rel="stylesheet" href="~/newidentitytest.styles.css" asp-append-version="true" />
+    @* Leaflet map library styles for interactive maps *@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -32,86 +37,38 @@
                 Digital Obstacle Report
             </a>
 
-            <!-- Mobile menu button -->
-            <button id="navToggle"
-                    class="inline-flex items-center justify-center rounded-md p-2 ring-1 ring-gray-300 hover:bg-gray-100 md:hidden"
-                    aria-controls="primaryNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
+            @{
+                @* Determine if navigation links should be shown based on current page and authentication status *@
+                var isIdentityAccountPage = ViewContext.RouteData.Values["area"]?.ToString() == "Identity" 
+                    && ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Account/") == true;
+                var showNavLinks = !isIdentityAccountPage || User.Identity?.IsAuthenticated == true;
+            }
 
-            <!-- Left links + Login/Register -->
+            @* Identity login/register partial view *@
             <div class="flex items-center gap-6">
-                <div id="primaryNav" class="hidden w-full md:w-auto md:flex md:items-center md:gap-6">
-                    <ul class="mt-3 flex flex-col gap-2 md:mt-0 md:flex-row md:items-center">
-                        <li>
-                            <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                               asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li>
-                            <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                               asp-area="" asp-controller="Reports" asp-action="Index">Reports</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Pilot"))
-                        {
-                            <li>
-                                <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                   asp-area="" asp-controller="Obstacle" asp-action="Drafts">My Drafts</a>
-                            </li>
-                        }
-                        <li>
-                            <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                               asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                            {
-                                <li>
-                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                       asp-area="" asp-controller="Organization" asp-action="Index">Organizations</a>
-                                </li>
-                            }
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li>
-                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                       asp-area="" asp-controller="Role" asp-action="Index">Roles</a>
-                                </li>
-                                <li>
-                                    <a class="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-indigo-700"
-                                       asp-area="" asp-controller="UserManagement" asp-action="Index">Users</a>
-                                </li>
-                            }
-                        }
-                    </ul>
-                </div>
-
-                <!-- Identity login/register block -->
                 <div class="hidden md:block">
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
 
-        <!-- Show login/register also when mobile menu is open -->
-        <div class="container md:hidden mt-2">
-            <partial name="_LoginPartial" />
-        </div>
+        @* Show login/register links on mobile devices when appropriate *@
+        @if (showNavLinks)
+        {
+            <div class="container md:hidden mt-2">
+                <partial name="_LoginPartial" />
+            </div>
+        }
     </header>
 
-    <!-- Main -->
+    @* Main content area where individual view content is rendered *@
     <div class="container flex-1 w-full">
         <main role="main" class="py-6">
             @RenderBody()
         </main>
     </div>
 
-    <!-- Footer -->
+    @* Footer with copyright and privacy policy link *@
     <footer class="border-t bg-white text-sm text-gray-600">
         <div class="container py-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p>&copy; 2025 - Digital Obstacle Report</p>
@@ -122,22 +79,12 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
-    <script>
-        // Simple mobile nav toggle
-        const navToggle = document.getElementById('navToggle');
-        const primaryNav = document.getElementById('primaryNav');
-        if (navToggle && primaryNav) {
-          navToggle.addEventListener('click', () => {
-            const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-            navToggle.setAttribute('aria-expanded', String(!expanded));
-            primaryNav.classList.toggle('hidden');
-          });
-        }
-    </script>
+    @* Common JavaScript libraries and scripts *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @* Leaflet map library for interactive maps *@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @* Optional scripts section for views that need additional JavaScript *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
