@@ -297,3 +297,168 @@ Scenario 6: Organisasjonsoppsett
 - **Forventet resultat**: Pilot får 403 Forbidden ved forsøk på Registrar-funksjoner
 - **Faktisk resultat**: Fungerer som forventet - mottok "Access denied - You do not have access to this resource"
 
+**Test 4b: Tilgang til andres data**
+- **Beskrivelse**: Verifiserer at piloter kan se andres rapporter, men ikke modifisere dem
+- **Testmetode**: 
+  - Logget inn som Pilot 1, opprettet rapport (ID 7)
+  - Logget inn som Pilot 2, forsøkt å aksessere rapport 7
+  - Forsøkt å slette rapport via direkte API-kall
+- **Forventet resultat**: 
+  - Pilot kan se andres rapporter (read-only)
+  - Ingen delete/edit-knapper vises for piloter
+  - Direkte API-kall til Delete-endepunkt gir 403 Forbidden
+- **Faktisk resultat**: Fungerer som forventet - piloter kan se, men ikke modifisere andres rapporter
+
+**Test 4c: Uautentisert tilgang**
+- **Beskrivelse**: Verifiserer at uautentiserte brukere ikke kan aksessere beskyttede ressurser
+- **Testmetode**: 
+  - Logget ut av applikasjonen
+  - Forsøkt å aksessere beskyttede sider direkte via URL:
+    - `/Pilot`
+    - `/Obstacle/DataForm`
+    - `/Reports`
+    - `/Registrar`
+- **Forventet resultat**: 
+  - Uautentiserte brukere omdirigeres til `/Identity/Account/Login`
+  - Ingen tilgang til beskyttet innhold
+- **Faktisk resultat**: Fungerer som forventet - Uautentiserte brukere omdirigeres til `/Identity/Account/Login`
+
+
+#### Test 5: Input-validering
+- **Beskrivelse**: Verifiserer at server-side validering fungerer korrekt
+- **Testmetode**: 
+  - **5a**: Prøv å sende inn tomme påkrevde felt (Obstacle Location)
+  - **5b**: Prøv å legge inn for lang tekst i beskrivelsesfeltet
+  - **5c**: Prøv å legge inn spesialtegn og edge cases
+- **Forventet resultat**: 
+  - Server-side validering avviser ugyldig input med feilmeldinger
+  - Data annotations på modeller (f.eks. `[Required]`, `[MaxLength]`) validerer input
+- **Faktisk resultat**: Fungerer som forventet - Server-side validering avviser ugyldig input med feilmeldinger, Data annotations på modeller (f.eks. `[Required]`, `[MaxLength]`) validerer input og alle spesialtegn vises korrekt i beskrivelsesfeltet, god Unicode-støtte
+
+
+#### Test 6: Passordhåndtering
+- **Beskrivelse**: Verifiserer at passord lagres sikkert
+- **Testmetode**: 
+  - Opprettet ny testbruker via registreringssiden med passord `TestPassword123!`
+  - Inspisert database via Adminer (`http://localhost:8081`)
+  - Kjørte SQL-spørring: `SELECT Id, Email, PasswordHash FROM AspNetUsers WHERE Email = 'test@email.com'`
+- **Forventet resultat**: 
+  - Passord lagres som hashet i databasen (ikke klartekst)
+  - PasswordHash er en lang hash-streng (100+ tegn)
+  - ASP.NET Core Identity håndterer passordhashing automatisk med PBKDF2
+- **Faktisk resultat**: Alt fungerer som forventet.
+
+
+#### Test 7: Session-håndtering
+- **Beskrivelse**: Verifiserer at sessions håndteres sikkert
+- **Testmetode**: 
+  - Inspisert cookies i DevTools (Application tab) etter innlogging
+  - Sjekket cookie-egenskaper for `.AspNetCore.Identity.Application`
+  - Testet session timeout ved inaktivitet
+- **Forventet resultat**: 
+  - Cookies er HttpOnly (ikke tilgjengelig via JavaScript)
+  - Cookies er Secure i produksjon (kun HTTPS)
+  - Cookies har SameSite satt (Lax eller Strict)
+  - ASP.NET Core Identity håndterer sessions automatisk
+- **Faktisk resultat**: Fungerer som forventet
+  - HttpOnly: ✓ (satt korrekt)
+  - Secure: (ikke satt i utviklingsmiljø - forventet for localhost)
+  - SameSite: `Lax` (satt korrekt)
+  - Expires: `Session` (utløper ved lukking av nettleser)
+  - Session timeout fungerer som forventet
+
+
+
+  ## Brukervennlighetstesting
+
+### Testmetode
+- Selvtest gjennomført med fokus på navigasjon, skjema, responsivt design og feilhåndtering
+- Testet på ulike enheter (tablet (IPad Mini, IPad), desktop) via browser DevTools
+
+### Testscenarier
+
+#### Scenario 1: Pilot-oppgaver
+- **Beskrivelse**: Test av pilotens hovedoppgaver og brukeropplevelse
+- **Testmetode**: 
+  - Logget inn som pilot og gikk gjennom komplett flyt:
+    - Se dashboard med oversikt over rapporter og notifikasjoner
+    - Opprett ny hindrerapport med punkt/linje på kart
+    - Lagre utkast og redigere det senere
+    - Se egne rapporter med sortering
+    - Se notifikasjoner når rapporter behandles
+    - Se godkjente hinder på kart
+- **Resultat**: 
+  - Dashboard gir god oversikt over status
+  - Rapportskjema er intuitivt med tydelige instruksjoner
+  - Kartet fungerer godt på mobil med fullscreen-funksjonalitet
+  - Notifikasjoner er tydelige og informative
+  - "My Reports" gir god oversikt over egne rapporter
+
+#### Scenario 2: Registerfører-oppgaver
+- **Beskrivelse**: Test av registerførerens arbeidsflyt og effektivitet
+- **Testmetode**: 
+  - Logget inn som registerfører og testet:
+    - Se dashboard med oversikt
+    - Se pending rapporter med sortering/søk
+    - Åpne rapportdetaljer
+    - Godkjenn/avslå rapporter med begrunnelse
+    - Tildele rapporter til andre registerførere
+    - Slette rapporter
+    - Se alle rapporter med avansert sortering
+- **Resultat**: 
+  - Arbeidsflyten er effektiv og logisk
+  - Pending-rapporter er lett å finne
+  - Rapportbehandling er enkel med tydelige knapper
+  - Sortering og søk fungerer godt
+  - Tildeling av rapporter er intuitivt
+
+#### Scenario 3: Admin-oppgaver
+- **Beskrivelse**: Test av admin-funksjoner og administrasjon
+- **Testmetode**: 
+  - Logget inn som admin og testet:
+    - Se dashboard
+    - Administrere brukere (liste, detaljer, tildel rolle)
+    - Administrere roller (opprett, se detaljer, slett)
+    - Administrere organisasjoner (CRUD-operasjoner)
+    - Se alle rapporter
+    - Behandle rapporter (godkjenn/avslå/slett)
+- **Resultat**: 
+  - Alle administrasjonsfunksjoner er tilgjengelige
+  - Brukeradministrasjon er oversiktlig
+  - Rolle- og organisasjonsadministrasjon er intuitivt
+  - Full tilgang til alle funksjoner fungerer som forventet
+
+#### Scenario 4: OrganizationManager-oppgaver
+- **Beskrivelse**: Test av organisasjonslederens oppgaver
+- **Testmetode**: 
+  - Logget inn som organisasjonsleder og testet:
+    - Se dashboard
+    - Se rapporter fra organisasjonsmedlemmer
+    - Se organisasjonsdetaljer
+    - Se rapporter sortert/filtrert
+- **Resultat**: 
+  - Oversikt over organisasjonens rapporter er god
+  - Det er enkelt å finne informasjon om organisasjonen
+  - Dashboard gir relevant oversikt
+
+#### Scenario 5: Tverrgående funksjoner
+- **Beskrivelse**: Test av funksjoner som gjelder alle roller
+- **Testmetode**: 
+  - Testet navigasjon, responsivt design og feilhåndtering
+  - Testet på tablet (iPad) og desktop
+- **Resultat**: 
+  - Navigasjonen er intuitiv med tydelige menyer for alle roller
+  - Applikasjonen fungerer godt på alle enheter
+  - Feilmeldinger er tydelige og hjelper brukeren
+  - Responsivt design tilpasser seg godt til ulike skjermstørrelser
+
+### Identifiserte forbedringsområder
+
+- Kan vurdere å legge til ekstra tilbakeknapper i prosjektet for bedre brukervennlighet dersom det ikke viser seg å være intuitivt å bruke Digital Obstacle Report - tittel som universal "Home" knapp.
+
+- Kan vurderes å gjøre hinder registrering mer brukervennlig med tanke på størrelsen av knapper.
+
+- Kan vurderes å forbedre metoden for piloter å navigere kartet med oversikt over godkjente hinder ettersom det fortsatt er mulighet for piloter å markere punkt der.
+
+### Konklusjon
+Applikasjonen fremstår som brukervennlig med intuitiv navigasjon, tydelige skjemaer og god responsivt design. Alle hovedfunksjoner er lett tilgjengelige og fungerer som forventet.
