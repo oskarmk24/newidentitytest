@@ -75,6 +75,44 @@ else
 app.UseHttpsRedirection();
 
 /// <summary>
+/// Content Security Policy (CSP) middleware for å beskytte mot XSS-angrep.
+/// Konfigurerer CSP-headere som begrenser hvilke ressurser som kan lastes inn.
+/// Tillater eksterne CDN-ressurser som brukes i applikasjonen (Tailwind CSS, Leaflet, Google Fonts).
+/// I produksjon bør inline scripts fjernes og flyttes til egne filer.
+/// </summary>
+app.Use(async (context, next) =>
+{
+    // Bygg CSP policy string
+    var csp = "default-src 'self'; " +
+              // Tillat scripts fra egen domene og CDN-ressurser
+              "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; " +
+              // Tillat styles fra egen domene, CDN-ressurser og Google Fonts
+              "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://fonts.googleapis.com https://cdn.jsdelivr.net; " +
+              // Tillat fonts fra Google Fonts
+              "font-src 'self' https://fonts.gstatic.com; " +
+              // Tillat bilder fra egen domene, CDN-ressurser og OpenStreetMap tiles
+              "img-src 'self' data: https: blob:; " +
+              // Tillat karttiles fra OpenStreetMap
+              "connect-src 'self' https://*.tile.openstreetmap.org; " +
+              // Tillat objekt-embedding (for iframes hvis nødvendig)
+              "object-src 'none'; " +
+              // Blokker alle andre ressurser
+              "base-uri 'self'; " +
+              // Forhindre clickjacking
+              "frame-ancestors 'self';";
+
+    context.Response.Headers.Append("Content-Security-Policy", csp);
+    
+    // Legg også til X-Frame-Options for ekstra beskyttelse mot clickjacking
+    context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
+    
+    // X-Content-Type-Options for å forhindre MIME-sniffing
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    
+    await next();
+});
+
+/// <summary>
 /// Aktiverer statisk fil-serving fra wwwroot-mappen.
 /// Nødvendig for å serve CSS, JavaScript, bilder og andre statiske ressurser.
 /// </summary>
