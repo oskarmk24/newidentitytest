@@ -550,7 +550,7 @@
         var modeLine = document.getElementById('modeLine');
         var clearBtn = document.getElementById('clearDrawBtn');
         var linePoints = []; // [ [lat, lng], ... ] - Array som holder koordinater for linjen
-        var polyline = null; // Leaflet polyline for visning av linjen på kartet
+        var polyline = null; // Leaflet polyline for visning av linjen p kartet
         var startCircle = null; // Sirkel ved starten av linjen
         var endCircle = null;   @* Circle marker at end of line *@
         var lineLocked = false; @* Prevents adding more points after line is locked (Done clicked) *@
@@ -663,32 +663,16 @@
                         return;
                     }
                     
-                    @* Check if line already has points and confirm continuation *@
-                    if (linePoints.length > 0) {
-                        // Vis bekreftelsesdialog før man legger til flere punkter
-                        if (!confirm('You have already started a line with ' + linePoints.length + ' point(s). Do you want to continue adding points to this line?')) {
-                            return; // Cancel if user clicks "Cancel"
-                        }
-                    }
-                    
                     var zoom = map.getZoom();
                     var scale = getScaleForZoom(zoom);
                     
-                    @* Add new point to line *@
-                    linePoints.push([e.latlng.lat, e.latlng.lng]);
-                    
-                    @* Create or update polyline visualization *@
-                    if (!polyline) { 
-                        polyline = L.polyline(linePoints, { color: 'red', weight: 4 * scale, lineCap: 'butt' }).addTo(map); 
-                    } else { 
-                        polyline.setLatLngs(linePoints); 
-                    }
-                    
-                    @* Update start and end circle markers *@
-                    if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
-                    if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
-                    
-                    if (linePoints.length > 0) {
+                    @* For straight line: first click sets start, second click sets end *@
+                    if (linePoints.length === 0) {
+                        @* First click: set starting point *@
+                        linePoints.push([e.latlng.lat, e.latlng.lng]);
+                        
+                        @* Create start circle marker *@
+                        if (startCircle) { map.removeLayer(startCircle); startCircle = null; }
                         startCircle = L.circleMarker(linePoints[0], { 
                             radius: 4 * scale, 
                             color: '#000', 
@@ -696,24 +680,55 @@
                             fillColor: 'red', 
                             fillOpacity: 1 
                         }).addTo(map);
-                    }
-                    
-                    if (linePoints.length > 1) {
-                        endCircle = L.circleMarker(linePoints[linePoints.length - 1], { 
+                        
+                        @* Update hint *@
+                        if (hint) hint.textContent = 'Start point set. Click to set end point.';
+                        hidden.value = ''; // Clear until we have both points
+                    } else if (linePoints.length === 1) {
+                        @* Second click: set endpoint and create straight line *@
+                        linePoints.push([e.latlng.lat, e.latlng.lng]);
+                        
+                        @* Create or update polyline visualization (straight line with 2 points) *@
+                        if (polyline) { map.removeLayer(polyline); }
+                        polyline = L.polyline(linePoints, { color: 'red', weight: 4 * scale, lineCap: 'butt' }).addTo(map);
+                        
+                        @* Create end circle marker *@
+                        if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+                        endCircle = L.circleMarker(linePoints[1], { 
                             radius: 4 * scale, 
                             color: '#000', 
                             weight: 2, 
                             fillColor: 'red', 
                             fillOpacity: 1 
                         }).addTo(map);
-                    }
-                    
-                    @* Update hint text based on line state *@
-                    if (linePoints.length >= 2) { 
-                        if (hint) hint.textContent = 'Line points: ' + linePoints.length + '. Press Done to save.'; 
-                    } else { 
-                        hidden.value = ''; 
-                        if (hint) hint.textContent = 'Add at least 2 points for a line.'; 
+                        
+                        @* Save the line location *@
+                        setLocationLine(linePoints);
+                        
+                        @* Update hint *@
+                        if (hint) hint.textContent = 'Line complete. Press Done to save.';
+                    } else {
+                        @* Line already has 2 points: replace endpoint with new click *@
+                        linePoints[1] = [e.latlng.lat, e.latlng.lng];
+                        
+                        @* Update polyline *@
+                        polyline.setLatLngs(linePoints);
+                        
+                        @* Update end circle marker *@
+                        if (endCircle) { map.removeLayer(endCircle); endCircle = null; }
+                        endCircle = L.circleMarker(linePoints[1], { 
+                            radius: 4 * scale, 
+                            color: '#000', 
+                            weight: 2, 
+                            fillColor: 'red', 
+                            fillOpacity: 1 
+                        }).addTo(map);
+                        
+                        @* Update saved location *@
+                        setLocationLine(linePoints);
+                        
+                        @* Update hint *@
+                        if (hint) hint.textContent = 'Line updated. Press Done to save.';
                     }
                 } else {
                     @* Point mode - check if marker already exists and confirm move *@
