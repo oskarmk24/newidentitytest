@@ -574,6 +574,17 @@
                     formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }
+            
+            @* Exit fullscreen automatically after location is marked *@
+            if (mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
+                toggleFullscreenMap();
+                @* Scroll to form after exiting fullscreen *@
+                setTimeout(function() {
+                    if (formSection) {
+                        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 350); // Wait for transition to complete (300ms + small buffer)
+            }
         }
 
         @* Save LineString location as GeoJSON in hidden input *@
@@ -595,8 +606,16 @@
                 // REMOVED: hidePilotMenu();
             }
 
-            // REMOVED: Don't automatically exit fullscreen when line is marked
-            // User can manually toggle with the button
+            @* Exit fullscreen automatically after location is marked *@
+            if (mapWrapper && mapWrapper.classList.contains('map-fullscreen')) {
+                toggleFullscreenMap();
+                @* Scroll to form after exiting fullscreen *@
+                setTimeout(function() {
+                    if (formSection) {
+                        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 350); // Wait for transition to complete (300ms + small buffer)
+            }
         }
 
         // Plasserer eller flytter mark�r p� kartet
@@ -663,13 +682,8 @@
                         return;
                     }
                     
-                    @* Check if line already has points and confirm continuation *@
-                    if (linePoints.length > 0) {
-                        // Vis bekreftelsesdialog før man legger til flere punkter
-                        if (!confirm('You have already started a line with ' + linePoints.length + ' point(s). Do you want to continue adding points to this line?')) {
-                            return; // Cancel if user clicks "Cancel"
-                        }
-                    }
+                    @* No confirmation needed - it's natural to add more points to a line *@
+                    @* User can always click "Clear" if they want to start over *@
                     
                     var zoom = map.getZoom();
                     var scale = getScaleForZoom(zoom);
