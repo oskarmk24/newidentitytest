@@ -138,13 +138,20 @@ namespace newidentitytest.Areas.Identity.Pages.Account
 
                         var roles = await _userManager.GetRolesAsync(user);
 
+                        // Check if user has no roles - redirect to AccessDenied page
+                        if (roles == null || roles.Count == 0)
+                        {
+                            _logger.LogWarning("User {UserId} logged in but has no roles assigned.", user.Id);
+                            return RedirectToAction("AccessDenied", "Home");
+                        }
+
                         // Admin or Registrar -> Home/Index
                         if (roles.Contains("Admin") || roles.Contains("Registrar"))
                         {
                             return LocalRedirect(Url.Content("~/Home/Index"));
                         }
 
-                        // Pilot -> Obstacle/DataForm
+                        // Pilot -> Pilot/Index
                         if (roles.Contains("Pilot"))
                         {
                             return LocalRedirect(Url.Content("~/Pilot/Index"));

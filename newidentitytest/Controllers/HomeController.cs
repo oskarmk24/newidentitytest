@@ -37,6 +37,17 @@ namespace newidentitytest.Controllers
         [Authorize]
         public async Task<IActionResult> Index()
         {
+            // Check if user has any roles
+            var hasAnyRole = User.IsInRole("Admin") || 
+                             User.IsInRole("Registrar") || 
+                             User.IsInRole("Pilot") || 
+                             User.IsInRole("OrganizationManager");
+            
+            if (!hasAnyRole)
+            {
+                return RedirectToAction("AccessDenied");
+            }
+
             // Redirect registrars to their landing page
             if (User.IsInRole("Registrar"))
             {
@@ -92,6 +103,16 @@ namespace newidentitytest.Controllers
         /// Tilgjengelig for alle brukere, krever ikke autentisering.
         /// </summary>
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Viser tilgangsnektet-side for brukere som ikke har blitt tildelt en rolle ennå.
+        /// Forklarer at brukeren ikke har blitt behandlet enda.
+        /// </summary>
+        [Authorize]
+        public IActionResult AccessDenied()
         {
             return View();
         }

@@ -1,0 +1,54 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<section class="container mx-auto py-12">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-8">
+            <div class="text-center mb-8">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                    <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">Access Denied</h1>
+                <p class="text-lg text-gray-600 mb-6">
+                    Your account has not been processed yet.
+                </p>
+            </div>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            <strong>Important info:</strong> Your account has been created, but you have not been assigned a role in the system yet. 
+                            You will need to wait until an administrator has processed your account and assigned you a suitable role before you can gain access to the system.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-3">What happens next?</h2>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li>Your account will be reviewed by an administrator</li>
+                    <li>You will be assigned a suitable role based on your organization and responsibilities</li>
+                    <li>Once this is done, you can log in again and gain access to the system</li>
+                </ul>
+            </div>
+
+            <div class="text-center">
+                <form asp-area="Identity" asp-page="/Account/Logout" method="post">
+                    <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Log out
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
