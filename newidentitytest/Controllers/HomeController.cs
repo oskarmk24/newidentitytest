@@ -19,7 +19,7 @@ namespace newidentitytest.Controllers
         private readonly ApplicationDbContext _context;
 
         /// <summary>
-        /// Injects ApplicationDbContext for database operations and logger for error tracking.
+        /// Dependency injection av ApplicationDbContext og Logger.
         /// </summary>
         public HomeController(ApplicationDbContext context, ILogger<HomeController> logger)
         {

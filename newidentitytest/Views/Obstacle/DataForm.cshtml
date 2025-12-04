@@ -1,8 +1,8 @@
-@* 
-    Obstacle registration form view with interactive map.
-    Allows pilots to register new obstacles by selecting location on map and filling form details.
-    For registrars, displays read-only map view of all approved obstacles.
-    Supports both Point and LineString obstacle types with fullscreen map toggle functionality.
+﻿@* 
+    Hinderregistreringsskjema visning med interaktivt kart.
+    Lar piloter registrere nye hindringer ved å velge plassering på kartet og fylle ut skjema detaljer.
+    For registratorer vises et skrivebeskyttet kartvisning av alle godkjente hindringer.
+    Støtter både Punkt og Linje hindringstyper med fullskjerm kartbytte funksjonalitet.
 *@
 @model newidentitytest.Models.ObstacleData
 
@@ -469,7 +469,7 @@
         })();
         // ----- End obstacle type info toggle -----
 
-        // Starter kartet og sentrerer f�rst p� Kvadraturen i Kristiansand
+        // Starter kartet og sentrerer først på Kvadraturen i Kristiansand
         const map = L.map('map').setView([58.1467, 7.9956], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '� OpenStreetMap contributors',

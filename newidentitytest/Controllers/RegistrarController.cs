@@ -132,7 +132,7 @@ namespace newidentitytest.Controllers
 				).ToList();
 			}
 
-			// Pass sorting info to view
+			// Passer parametere til view
 			ViewBag.SortBy = sortBy;
 			ViewBag.SortOrder = sortOrder;
 			ViewBag.Search = search;

@@ -60,12 +60,7 @@ namespace newidentitytest.Controllers
                             ObstacleLocation = r.ObstacleLocation
                         };
 
-            // NOTE: applying complex string operations (ToLower/ToString formatting) inside an EF Core
-            // LINQ expression can fail to translate to SQL on some providers. To keep the UI responsive
-            // and make the search button work reliably, we'll materialize the projected results first
-            // and then apply an in-memory filter if a search term is provided.
-
-            // Apply sorting
+            // På samme måte som i OrganizationController og PilotController legger vi til sortering og søkefunksjonalitet
             query = sortBy.ToLower() switch
             {
                 "id" => sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id),
@@ -79,7 +74,7 @@ namespace newidentitytest.Controllers
 
             var items = await query.ToListAsync();
 
-            // Apply search filter in-memory to avoid EF translation issues
+            
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.ToLowerInvariant();
@@ -95,7 +90,6 @@ namespace newidentitytest.Controllers
                 
             }
             
-            // Pass sorting info to view
             ViewBag.SortBy = sortBy;
             ViewBag.SortOrder = sortOrder;
             ViewBag.Search = search;
@@ -168,7 +162,6 @@ namespace newidentitytest.Controllers
         }
         /// <summary>
         /// Godkjenner en rapport og oppdaterer status til "Approved".
-        /// Krever Registrar eller Admin rolle.
         /// Oppdaterer ProcessedAt til nåværende tid og nullstiller eventuell tidligere avslagsbegrunnelse.
         /// Oppretter notifikasjon til piloten om at rapporten er godkjent.
         /// Redirecter tilbake til Details med suksessmelding.
@@ -185,14 +178,14 @@ namespace newidentitytest.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Update report status
+            // Rpport status oppdateres
             report.Status = "Approved";
             report.ProcessedAt = DateTime.UtcNow;
             report.RejectionReason = null; // Clear any previous rejection reason
 
             await _db.SaveChangesAsync();
 
-            // Create notification for pilot
+            // Lager notifikasjon for piloten
             await CreateNotificationForPilotAsync(report, "Approved", null);
 
             TempData["SuccessMessage"] = "Report approved.";
@@ -219,21 +212,19 @@ namespace newidentitytest.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Validate rejection reason
+            // Validering av avslagsbegrunnelse
             if (string.IsNullOrWhiteSpace(rejectionReason))
             {
                 TempData["ErrorMessage"] = "You must provide a reason for rejection.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            // Update report status
             report.Status = "Rejected";
             report.RejectionReason = rejectionReason;
             report.ProcessedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
 
-            // Create notification for pilot
             await CreateNotificationForPilotAsync(report, "Rejected", rejectionReason);
 
             TempData["SuccessMessage"] = "Report rejected.";
@@ -288,7 +279,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Tildeler eller fjerner tildeling av en registerfører til en rapport.
-        /// Krever Registrar rolle.
         /// Hvis registrarId er null eller tom, fjernes tildelingen.
         /// Hvis registrarId er oppgitt, valideres at brukeren eksisterer og har Registrar-rolle.
         /// Redirecter tilbake til Details med suksessmelding eller feilmelding hvis validering feiler.
@@ -329,7 +319,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Sletter en rapport permanent fra databasen.
-        /// Krever Registrar eller Admin rolle.
         /// Sletter først alle tilknyttede notifikasjoner, deretter selve rapporten.
         /// Oppretter en notifikasjon til piloten om at rapporten er slettet (hvis piloten eksisterer).
         /// Redirecter til Index med suksessmelding eller feilmelding hvis rapporten ikke finnes.
@@ -350,17 +339,17 @@ namespace newidentitytest.Controllers
             var reportId = report.Id;
             var userId = report.UserId;
 
-            // Delete associated notifications first
+            // Slett tilknyttede notifikasjoner først
             var notifications = await _db.Notifications
                 .Where(n => n.ReportId == reportId)
                 .ToListAsync();
             _db.Notifications.RemoveRange(notifications);
 
-            // Delete the report
+            // slett rapport
             _db.Reports.Remove(report);
             await _db.SaveChangesAsync();
 
-            // Create notification for pilot if they exist
+            // Lager notifikasjon for piloten
             if (!string.IsNullOrEmpty(userId))
             {
                 var registrarName = "a registrar";
@@ -377,7 +366,7 @@ namespace newidentitytest.Controllers
                 var notification = new Notification
                 {
                     UserId = userId,
-                    ReportId = reportId, // This will be a deleted report ID, but notification can still reference it
+                    ReportId = reportId,
                     Title = $"Report #{reportId} deleted",
                     Message = $"Your report #{reportId} has been deleted by {registrarName}.",
                     IsRead = false,
