@@ -15,8 +15,7 @@ En ASP.NET Core MVC-applikasjon for rapportering av hinder i luftrommet. Systeme
 
 ## Hvordan kjøre prosjektet
 
-- Forutsetninger:
-                - Docker Desktop installert
+- Forutsetninger: Docker Desktop installert
 
 1. Åpne terminal.
 3. cd (mappen hvor compose filen ligger)
@@ -253,6 +252,7 @@ Scenario 6: Organisasjonsoppsett
 - **SQL Injection-beskyttelse**: Entity Framework Core parameteriserte queries
 - **XSS-beskyttelse**: Automatisk HTML-encoding i Razor Views
 - **HTTPS**: HTTPS-redirection i produksjon med HSTS
+- **Content Security Policy**: CSP-headere implementert for å redusere risiko for XSS-angrep ved å begrense hvilke ressurser som kan lastes. 
 
 ### Sikkerhetstesting
 
@@ -462,3 +462,135 @@ Scenario 6: Organisasjonsoppsett
 
 ### Konklusjon
 Applikasjonen fremstår som brukervennlig med intuitiv navigasjon, tydelige skjemaer og god responsivt design. Alle hovedfunksjoner er lett tilgjengelige og fungerer som forventet.
+
+
+## Enhettesting
+
+Prosjektet har omfattende unit test-dekning for alle controllers. Testene er skrevet med xUnit og bruker in-memory database for isolasjon.
+
+### Testteknologi
+
+- **Testrammeverk**: xUnit
+- **Mocking**: Moq (for UserManager og RoleManager)
+- **Database**: Entity Framework Core In-Memory Database
+
+Prosjektet inneholder **77 unit tester** som dekker:
+
+- **Tilgangskontroll og autorisasjon**: Verifiserer at brukere kun kan aksessere ressurser de har tilgang til
+- **Dataisolasjon**: Sikrer at brukere kun ser sine egne data
+- **Validering og edge cases**: Tester håndtering av ugyldig input og manglende data
+- **Forretningslogikk**: Verifiserer korrekt beregning av statistikk, sortering og filtrering
+- **CRUD-operasjoner**: Tester opprettelse, lesing, oppdatering og sletting av data
+- **Notifikasjoner**: Verifiserer at notifikasjoner opprettes og håndteres korrekt
+
+### Kjøre testene
+
+For å kjøre alle unit testene:
+
+dotnet test newidentitytest.UnitTests/newidentitytest.Tests.csproj
+
+#### HomeController
+- `Index_RegistrarUser_RedirectsToRegistrarDashboard`: Verifiserer rollebasert redirect for Registrar
+- `Index_OrganizationManagerUser_RedirectsToOrganizationManagerDashboard`: Verifiserer rollebasert redirect for OrganizationManager
+- `Index_PilotUser_RedirectsToPilotDashboard`: Verifiserer rollebasert redirect for Pilot
+- `Index_UserWithoutPrivilegedRoles_RedirectsToObstacleForm`: Verifiserer redirect for vanlige brukere
+- `Index_AdminUser_WithDatabaseConnection_ReturnsViewWithSuccessMessage`: Verifiserer at Admin får visning med statusmelding
+- `Privacy_ReturnsView`: Verifiserer at Privacy-siden returnerer visning
+- `Error_ReturnsViewWithErrorViewModel`: Verifiserer at Error-siden returnerer ErrorViewModel
+
+#### ObstacleController
+- `EditDraft_UserTriesToEditOtherUsersDraft_ReturnsNotFound`: Tilgangskontroll for utkast
+- `Drafts_ReturnsOnlyCurrentUsersDrafts`: Dataisolasjon for utkast
+- `DataForm_SubmitAction_CreatesPendingReport`: Opprettelse av Pending-rapport
+- `DataForm_DraftAction_CreatesDraftAndRedirectsToDrafts`: Lagring som utkast
+- `GetApprovedObstacles_ReturnsOnlyApprovedReports`: API-endepunkt for godkjente hinder
+
+#### OrganizationController
+**CRUD-operasjoner:**
+- `Index_ReturnsOrganizationsSortedByName`: Lister organisasjoner alfabetisk
+- `Details_NullId_ReturnsNotFound`: Håndtering av null-id
+- `Details_NonExistentOrganization_ReturnsNotFound`: Håndtering av ikke-eksisterende organisasjon
+- `Details_ValidId_ReturnsOrganizationWithUsers`: Detaljvisning med brukere
+- `Create_ValidModel_CreatesOrganizationAndRedirects`: Opprettelse av organisasjon
+- `Create_InvalidModel_ReturnsViewWithErrors`: Validering ved opprettelse
+- `Edit_Get_NullId_ReturnsNotFound`: GET-redigering med null-id
+- `Edit_Get_NonExistentOrganization_ReturnsNotFound`: GET-redigering med ikke-eksisterende organisasjon
+- `Edit_Get_ValidId_ReturnsOrganization`: GET-redigering med gyldig id
+- `Edit_Post_IdMismatch_ReturnsNotFound`: POST-redigering med id-mismatch
+- `Edit_Post_ValidModel_UpdatesOrganizationAndRedirects`: POST-redigering med gyldig modell
+- `Edit_Post_InvalidModel_ReturnsViewWithErrors`: Validering ved redigering
+- `Delete_Get_NullId_ReturnsNotFound`: GET-sletting med null-id
+- `Delete_Get_NonExistentOrganization_ReturnsNotFound`: GET-sletting med ikke-eksisterende organisasjon
+- `Delete_Get_ValidId_ReturnsOrganizationWithUsers`: GET-sletting med gyldig id
+- `DeleteConfirmed_ValidId_DeletesOrganizationAndRedirects`: Bekreftet sletting
+
+**Tilgangskontroll for rapporter:**
+- `Reports_UserNotInOrgAndNoRole_ReturnsForbid`: Blokkerer uautorisert tilgang
+- `Reports_AdminUser_ReturnsOrganizationReports`: Admin ser alle rapporter
+- `Reports_RegistrarUser_ReturnsOrganizationReports`: Registrar ser alle rapporter
+- `Reports_OrganizationManagerFromSameOrg_ReturnsOrganizationReports`: Manager ser egen organisasjons rapporter
+- `Reports_OrganizationManagerFromDifferentOrg_ReturnsForbid`: Manager kan ikke se andre organisasjoners rapporter
+- `Reports_NullId_ReturnsNotFound`: Håndtering av null-id
+- `Reports_NonExistentOrganization_ReturnsNotFound`: Håndtering av ikke-eksisterende organisasjon
+- `Reports_SortsReportsCorrectly`: Sortering av rapporter
+- `Reports_FiltersReportsBySearch`: Filtrering av rapporter
+
+#### OrganizationManagerController
+- `Index_NoUserId_ReturnsForbid`: Håndtering av manglende userId
+- `Index_UserWithoutOrganization_ReturnsNotFound`: Håndtering av manglende organisasjon
+- `Index_CalculatesCorrectStatistics`: Beregning av statistikk
+- `Index_OnlyShowsReportsFromOwnOrganization`: Dataisolasjon for organisasjoner
+- `Index_OrganizationNotFound_ReturnsNotFound`: Håndtering av ikke-eksisterende organisasjon
+
+#### PilotController
+- `MyReports_ReturnsOnlyCurrentUsersReports`: Dataisolasjon for pilot-rapporter
+- `Index_NoUserId_ReturnsForbid`: Håndtering av manglende userId
+- `Index_CalculatesCorrectStatistics`: Beregning av statistikk
+- `MarkNotificationAsRead_OtherUsersNotification_DoesNotMarkAsRead`: Tilgangskontroll for notifikasjoner
+- `MarkAllNotificationsAsRead_OnlyMarksCurrentUsersNotifications`: Dataisolasjon for notifikasjoner
+
+#### RegistrarController
+- `Index_CalculatesCorrectStatistics`: Beregning av statistikk
+- `Index_ShowsOnlyAssignedReportsInDashboardWidget`: Visning av tildelte rapporter
+- `Index_NoRegistrarId_ReturnsEmptyAssignedReports`: Håndtering av manglende registrarId
+- `Pending_ReturnsAllPendingReports`: Visning av alle ventende rapporter
+- `Pending_SortsReportsCorrectly`: Sortering av rapporter
+- `Pending_FiltersReportsBySearch`: Filtrering av rapporter
+
+#### ReportsController
+- `Approve_UpdatesReportStatusAndCreatesNotification`: Godkjenning av rapporter
+- `Reject_WithReason_UpdatesStatusAndCreatesNotification`: Avslag med begrunnelse
+- `Reject_WithoutReason_ReturnsErrorAndDoesNotUpdateStatus`: Validering av avslag
+- `Delete_RemovesReportAndNotificationsAndCreatesDeletionNotification`: Sletting av rapporter
+- `Details_NonExistentReport_ReturnsNotFound`: Håndtering av ikke-eksisterende rapporter
+- `AssignRegistrar_InvalidRegistrarId_ReturnsError`: Validering av registrar-tildeling
+
+#### RoleController
+- `Create_NewRole_CreatesRoleAndRedirects`: Opprettelse av nye roller
+- `Create_ExistingRole_ReturnsViewWithError`: Validering av duplikate roller
+- `Create_EmptyRoleName_ReturnsViewWithError`: Validering av tomt rolle-navn
+- `Details_NonExistentRole_ReturnsNotFound`: Håndtering av ikke-eksisterende roller
+- `Details_NullId_ReturnsNotFound`: Håndtering av null-id
+- `AssignRole_UserNotInRole_AssignsRoleAndRedirects`: Tildeling av roller
+- `AssignRole_UserAlreadyInRole_DoesNotAssignAgain`: Forhindring av duplikate tildelinger
+- `RemoveRole_UserInRole_RemovesRoleAndRedirects`: Fjerning av roller
+- `DeleteConfirmed_RoleWithoutUsers_DeletesRoleAndRedirects`: Sletting av tomme roller
+- `DeleteConfirmed_RoleWithUsers_PreventsDeletion`: Forhindring av sletting av roller i bruk
+- `ManageUserRoles_NonExistentUser_ReturnsNotFound`: Håndtering av ikke-eksisterende brukere
+
+#### UserManagementController
+- `Details_NullId_ReturnsNotFound`: Håndtering av null-id
+- `AssignToOrganization_ValidUserAndOrg_AssignsAndRedirects`: Tildeling til organisasjon
+- `AssignToOrganization_NonExistentUser_ReturnsNotFound`: Validering av bruker
+- `AssignToOrganization_NonExistentOrganization_ReturnsNotFound`: Validering av organisasjon
+- `RemoveFromOrganization_ValidUser_RemovesAndRedirects`: Fjerning fra organisasjon
+- `RemoveFromOrganization_NonExistentUser_ReturnsNotFound`: Validering av bruker
+
+### Testkategorier
+
+Testene er organisert i følgende kategorier:
+
+1. **Tilgangskontroll**: Sikrer at brukere kun kan se og modifisere sin egen data, og at rollebasert tilgang fungerer korrekt
+2. **CRUD-operasjoner**: Verifiserer at alle grunnleggende databaseoperasjoner fungerer som forventet
+3. **Validering og edge cases**: Tester håndtering av null-verdier, ikke-eksisterende data, og ugyldig input
+4. **Forretningslogikk**: Verifiserer korrekt beregning av statistikk, sortering, filtrering, og notifikasjonshåndtering
