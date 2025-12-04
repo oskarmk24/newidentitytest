@@ -10,7 +10,7 @@ using Xunit;
 
 namespace newidentitytest.Tests
 {
-    // Enkel mock for TempDataProvider til bruk i tester
+    // Mock for TempDataProvider til bruk i tester
     public class MockTempDataProvider : ITempDataProvider
     {
         private readonly Dictionary<string, object> _data = new();
