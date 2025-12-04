@@ -14,7 +14,7 @@ namespace newidentitytest.Tests
     {
         // Denne testen dekker den kritiske grenen: rollebasert redirect for registerførere.
         // Hva: sikrer at Registrar-brukere sendes til sitt dashboard fra Home/Index.
-        // Hvorfor: en regresjon her bryter navigasjonen for en hel rolle.
+        // Hvorfor: en feil her bryter navigasjonen for en hel rolle.
         // Hvordan: opprett controller med in-memory DbContext, legg til falsk Registrar principal, assert redirect action/controller.
         [Fact]
         public async Task Index_RegistrarUser_RedirectsToRegistrarDashboard()
@@ -52,7 +52,7 @@ namespace newidentitytest.Tests
 
         // Denne testen dekker den kritiske grenen: rollebasert redirect for organisasjonsledere.
         // Hva: sikrer at OrganizationManager-brukere sendes til sitt dashboard fra Home/Index.
-        // Hvorfor: en regresjon her bryter navigasjonen for en hel rolle.
+        // Hvorfor: en feil her bryter navigasjonen for en hel rolle.
         // Hvordan: opprett controller med in-memory DbContext, legg til falsk OrganizationManager principal, assert redirect action/controller.
         [Fact]
         public async Task Index_OrganizationManagerUser_RedirectsToOrganizationManagerDashboard()
@@ -90,7 +90,7 @@ namespace newidentitytest.Tests
 
         // Denne testen dekker den kritiske grenen: rollebasert redirect for piloter.
         // Hva: sikrer at Pilot-brukere sendes til sitt dashboard fra Home/Index.
-        // Hvorfor: en regresjon her bryter navigasjonen for en hel rolle.
+        // Hvorfor: en feil her bryter navigasjonen for en hel rolle.
         // Hvordan: opprett controller med in-memory DbContext, legg til falsk Pilot principal, assert redirect action/controller.
         [Fact]
         public async Task Index_PilotUser_RedirectsToPilotDashboard()

@@ -474,7 +474,7 @@ Prosjektet har omfattende unit test-dekning for alle controllers. Testene er skr
 - **Mocking**: Moq (for UserManager og RoleManager)
 - **Database**: Entity Framework Core In-Memory Database
 
-Prosjektet inneholder **77 unit tester** som dekker:
+Prosjektet inneholder **76 unit tester** som dekker:
 
 - **Tilgangskontroll og autorisasjon**: Verifiserer at brukere kun kan aksessere ressurser de har tilgang til
 - **Dataisolasjon**: Sikrer at brukere kun ser sine egne data

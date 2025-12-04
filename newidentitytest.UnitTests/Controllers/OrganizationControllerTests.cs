@@ -14,7 +14,7 @@ namespace newidentitytest.Tests
     {
         // Denne testen dekker den kritiske tilgangskontroll-grenen for rapporter.
         // Hva: sikrer at brukere som ikke er medlemmer og ikke har privilegerte roller får Forbid når de ber om andres organisasjonsrapporter.
-        // Hvorfor: forhindrer at rapportdata lekkes mellom organisasjoner hvis rolle-sjekker regresserer.
+        // Hvorfor: forhindrer at rapportdata lekkes mellom organisasjoner hvis rolle-sjekker feiler.
         // Hvordan: seed organisasjon + bruker i annen organisasjon, legg til falsk principal, kall Reports, forvent ForbidResult.
         [Fact]
         public async Task Reports_UserNotInOrgAndNoRole_ReturnsForbid()
