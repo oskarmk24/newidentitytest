@@ -78,6 +78,7 @@ OrganizationManager:
 - Autentisering: ASP.NET Core Identity
 - Frontend: Razor Views med Tailwind CSS
 - Container løsning: Docker + Docker Compose
+- Database Administrering: Adminer
 
 
 ### Models
@@ -608,3 +609,36 @@ Alle 76 unit tester består uten feil:
 ![Testresultat - Alle 76 tester bestått](images/test-resultat.png)
 
 Testene verifiserer at alle controllers fungerer korrekt med full testdekning for tilgangskontroll, CRUD-operasjoner, validering og forretningslogikk.
+
+
+
+
+## Kilder og verktøy
+
+### Utviklingsverktøy
+- Cursor IDE
+- Visual Studio IDE
+- Visual Studio Code IDE
+- JetBrains Rider IDE
+- Docker Desktop
+- Adminer Database Management
+
+### KI erklæring
+KI har blitt brukt som hjelpe- og læreverktøy for kodegenerering, debugging og dokumentasjon. KI har ikke tatt beslutninger om systemarkitektur eller kodelogikk uten menneskelig vurdering. Som gruppe har vi brukt KI som Sonnet 4.5 og ChatGPT 5.1 i tråd med UIAs retningslinjer for bruk av kunstig intelligens.
+
+
+### Kildeliste (Sist besøkt 04/12/2025)
+
+Adminer. (2025). *Adminer - Database management in single PHP file*. https://www.adminer.org/en/
+
+Codecademy. (n.d). *How to use GitHub Actions*. Codecademy. https://www.codecademy.com/article/how-to-use-github-actions
+
+Microsoft. (2024). *ASP.NET Core MVC overview*. Microsoft Learn. https://learn.microsoft.com/en-us/aspnet/core/mvc/overview?view=aspnetcore-9.0
+
+Microsoft. (2025). *Tutorial: Get started with ASP.NET Core MVC*. Microsoft Learn. https://learn.microsoft.com/en-us/aspnet/core/tutorials/first-mvc-app/start-mvc?view=aspnetcore-9.0&tabs=visual-studio
+
+IAmTimCorey. Back-end Web Development with .NET for Beginners *ASP.NET Core MVC Tutorial*. YouTube. https://www.youtube.com/playlist?list=PLdo4fOcmZ0oWunQnm3WnZxJrseIw2zSAk
+
+IAmTimCorey. Front-end Web Development with .NET for Beginners *ASP.NET Core MVC Tutorial - Full Course*. YouTube. https://www.youtube.com/playlist?list=PLdo4fOcmZ0oXNZX1Q8rB-5xgTSKR8qA5k
+
+MartinDevs. Integrate Tailwind CSS with .NET 8 MVC: Step-by-Step Guide. (2025). YouTube. https://www.youtube.com/watch?v=NPYQUDmOeYI
