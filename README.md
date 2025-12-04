@@ -165,7 +165,10 @@ OrganizationManager:
 - AspNetUserLogins: ekstern innlogging.
 
 ### ER Diagram
-(images/ER-diagram.png)
+
+![ER Diagram - Database struktur](images/ER-diagram.png)
+
+Diagrammet viser relasjonene mellom alle tabeller i databasen, inkludert Identity-tabeller og applikasjonsspesifikke tabeller.
 
 ### Roller og Tilgangskontroll
 
