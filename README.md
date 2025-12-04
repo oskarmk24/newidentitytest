@@ -15,8 +15,7 @@ En ASP.NET Core MVC-applikasjon for rapportering av hinder i luftrommet. Systeme
 
 ## Hvordan kjøre prosjektet
 
-- Forutsetninger:
-                - Docker Desktop installert
+- Forutsetninger: Docker Desktop installert
 
 1. Åpne terminal.
 3. cd (mappen hvor compose filen ligger)
