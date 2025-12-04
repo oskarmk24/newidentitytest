@@ -11,7 +11,6 @@ namespace newidentitytest.Controllers
 	/// Controller for piloter (Pilot-rolle).
 	/// Gir dashboard med oversikt over egne rapporter, utkast, notifikasjoner og systemstatus.
 	/// Støtter visning og administrasjon av pilotens egne rapporter med sortering og søk.
-	/// Krever Pilot-rolle. Hver pilot kan kun se og administrere sine egne rapporter og notifikasjoner.
 	/// </summary>
 	[Authorize(Roles = "Pilot")]
 	public class PilotController : Controller
@@ -120,7 +119,7 @@ namespace newidentitytest.Controllers
 							ObstacleLocation = r.ObstacleLocation
 						};
 
-			// Apply sorting
+			// Legger til sortering
 			query = sortBy.ToLower() switch
 			{
 				"id" => sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id),
@@ -132,7 +131,7 @@ namespace newidentitytest.Controllers
 
 			var items = await query.ToListAsync();
 
-			// Apply search filter in-memory so string operations won't break SQL translation
+			// Legger ved søkefunksjonalitet
 			if (!string.IsNullOrWhiteSpace(search))
 			{
 				var searchLower = search.ToLowerInvariant();

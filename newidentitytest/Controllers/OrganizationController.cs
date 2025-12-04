@@ -64,7 +64,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Viser skjema for å opprette ny organisasjon.
-        /// Krever Admin, Registrar eller OrganizationManager rolle.
         /// </summary>
         [Authorize(Roles = "Admin,Registrar,OrganizationManager")]
         public IActionResult Create()
@@ -74,7 +73,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Oppretter en ny organisasjon basert på skjemadata.
-        /// Krever Admin, Registrar eller OrganizationManager rolle.
         /// Validerer modellen og viser feilmeldinger hvis validering feiler.
         /// Ved suksess: redirecter til Index med suksessmelding.
         /// </summary>
@@ -95,7 +93,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Viser skjema for redigering av eksisterende organisasjon.
-        /// Krever Admin, Registrar eller OrganizationManager rolle.
         /// Returnerer NotFound hvis organisasjonen ikke finnes.
         /// </summary>
         [Authorize(Roles = "Admin,Registrar,OrganizationManager")]
@@ -116,7 +113,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Oppdaterer en eksisterende organisasjon basert på skjemadata.
-        /// Krever Admin, Registrar eller OrganizationManager rolle.
         /// Håndterer DbUpdateConcurrencyException hvis organisasjonen har blitt endret av en annen bruker.
         /// Validerer modellen og viser feilmeldinger hvis validering feiler.
         /// Ved suksess: redirecter til Index med suksessmelding.
@@ -157,7 +153,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Viser bekreftelsesside for sletting av organisasjon.
-        /// Krever Admin eller Registrar rolle.
         /// Inkluderer organisasjonens brukere i visningen for å vise konsekvenser av sletting.
         /// Returnerer NotFound hvis organisasjonen ikke finnes.
         /// </summary>
@@ -183,7 +178,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Sletter organisasjonen permanent fra databasen.
-        /// Krever Admin eller Registrar rolle.
         /// Brukere som tilhører organisasjonen får OrganizationId satt til null (via DeleteBehavior.SetNull).
         /// Ved suksess: redirecter til Index med suksessmelding.
         /// </summary>
@@ -227,24 +221,24 @@ namespace newidentitytest.Controllers
                 return NotFound();
             }
 
-            // Check if user has access: must be member of organization, Admin, Registrar, or OrganizationManager
+            // Sjekk at bruker er autorisert til å se rapporter for denne organisasjonen
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             
             bool hasAccess = false;
             if (user != null)
             {
-                // Admin and Registrar can see all organization reports
+                // Admin and Registerfører kan se alle organisasjonsrapporter
                 if (User.IsInRole("Admin") || User.IsInRole("Registrar"))
                 {
                     hasAccess = true;
                 }
-                // OrganizationManager can only see their own organization's reports
+                // OrganizationManager ser sine egen organisasjons rapporter
                 else if (User.IsInRole("OrganizationManager") && user.OrganizationId == id)
                 {
                     hasAccess = true;
                 }
-                // Users can see reports from their own organization
+                // Brukere ser sine egen organisasjons rapporter
                 else if (user.OrganizationId == id)
                 {
                     hasAccess = true;
@@ -256,13 +250,13 @@ namespace newidentitytest.Controllers
                 return Forbid();
             }
 
-            // Get user IDs for this organization
+            // Henter bruker-IDer for medlemmer av organisasjonen
             var organizationUserIds = await _context.Users
                 .Where(u => u.OrganizationId == id)
                 .Select(u => u.Id)
                 .ToListAsync();
 
-            // Build query for reports from organization members
+            // Lager spørring for rapporter fra disse brukerne
             var query = from r in _context.Reports
                         where organizationUserIds.Contains(r.UserId)
                         join u in _context.Users on r.UserId equals u.Id into userJoin
@@ -280,7 +274,7 @@ namespace newidentitytest.Controllers
                             ObstacleLocation = r.ObstacleLocation
                         };
 
-            // Apply sorting
+            // Sortering
             query = sortBy.ToLower() switch
             {
                 "id" => sortOrder == "asc" ? query.OrderBy(r => r.Id) : query.OrderByDescending(r => r.Id),
@@ -294,7 +288,7 @@ namespace newidentitytest.Controllers
 
             var items = await query.ToListAsync();
 
-            // Apply search filter in-memory
+            // Søkefunksjonalitet
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.ToLowerInvariant();

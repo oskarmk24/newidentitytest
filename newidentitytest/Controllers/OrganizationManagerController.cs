@@ -10,7 +10,7 @@ namespace newidentitytest.Controllers
     /// <summary>
     /// Controller for organisasjonsledere (OrganizationManager).
     /// Gir dashboard med statistikk over rapporter fra organisasjonens medlemmer.
-    /// Krever OrganizationManager-rolle. Hver organisasjonsleder kan kun se data fra sin egen organisasjon.
+    /// Hver organisasjonsleder kan kun se data fra sin egen organisasjon.
     /// </summary>
     [Authorize(Roles = "OrganizationManager")]
     public class OrganizationManagerController : Controller

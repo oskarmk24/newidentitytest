@@ -9,7 +9,7 @@ namespace newidentitytest.Controllers
 {
     /// <summary>
     /// Controller som håndterer registrering og administrasjon av hinderrapporter.
-    /// Støtter opprettelse av nye rapporter, lagring som utkast (drafts), redigering av utkast,
+    /// Støtter opprettelse av nye rapporter, lagring som utkast som vi har kallt drafts, redigering av utkast,
     /// og API-endepunkter for kartvisning av godkjente hinder.
     /// </summary>
     [Authorize]
@@ -146,7 +146,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Viser liste over alle utkast (drafts) for den innloggede piloten.
-        /// Krever Pilot-rolle. Sortert etter opprettelsesdato (nyeste først).
         /// </summary>
         [HttpGet]
         [Authorize(Roles = "Pilot")]
@@ -168,7 +167,6 @@ namespace newidentitytest.Controllers
 
         /// <summary>
         /// Åpner skjemaet for redigering av et eksisterende utkast.
-        /// Krever Pilot-rolle. Sjekker at utkastet tilhører den innloggede brukeren.
         /// Returnerer NotFound hvis utkastet ikke finnes eller ikke tilhører brukeren.
         /// </summary>
         [HttpGet]
