@@ -594,3 +594,12 @@ Testene er organisert i følgende kategorier:
 2. **CRUD-operasjoner**: Verifiserer at alle grunnleggende databaseoperasjoner fungerer som forventet
 3. **Validering og edge cases**: Tester håndtering av null-verdier, ikke-eksisterende data, og ugyldig input
 4. **Forretningslogikk**: Verifiserer korrekt beregning av statistikk, sortering, filtrering, og notifikasjonshåndtering
+
+
+### Testresultat
+
+Alle 76 unit tester består uten feil:
+
+![Testresultat - Alle 76 tester bestått](images/test-resultat.png)
+
+Testene verifiserer at alle controllers fungerer korrekt med full testdekning for tilgangskontroll, CRUD-operasjoner, validering og forretningslogikk.
