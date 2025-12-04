@@ -164,6 +164,8 @@ OrganizationManager:
 - AspNetUserTokens: autentiseringstokens.
 - AspNetUserLogins: ekstern innlogging.
 
+### ER Diagram
+(images/ER-diagram.png)
 
 ### Roller og Tilgangskontroll
 
