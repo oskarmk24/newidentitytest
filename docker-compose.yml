@@ -10,7 +10,7 @@ services:
     container_name: mariadb
     restart: unless-stopped
     environment:
-      # Rotbrukerpassord for MariaDB (kun for utvikling - endre i produksjon!)
+      # Rotbrukerpassord for MariaDB
       MARIADB_ROOT_PASSWORD: root123
       # Navn på databasen som opprettes automatisk
       MARIADB_DATABASE: obstacledb
@@ -70,12 +70,7 @@ services:
         # Venter til MariaDB er healthy før Adminer starter
         condition: service_healthy
 
-# Merknad: Bruker ikke eksplisitt nettverksdefinisjon - tjenester kommuniserer på standard Docker-nettverket.
-# Hvis du trenger et tilpasset nettverk, kan du legge til:
-# networks:
-#   appnet:
-#     driver: bridge
-# Og deretter legge til 'networks: [appnet]' til hver tjeneste.
+
 
 # Docker volumes for persistering av data
 volumes:
